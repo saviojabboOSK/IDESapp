@@ -1,4 +1,3 @@
-
 :root {
   --bg: #263238;
   --fg: #ECEFF1;
@@ -71,6 +70,7 @@ body {
 }
 
 
+/* Make chat area a small, left-aligned chatbox */
 .chat-area {
   display:flex; flex-direction:column; gap:8px;
   max-height:600px; overflow-y:auto;
@@ -81,6 +81,11 @@ body {
 }
 .chat-bubble.user { align-self:flex-end; background:#455A64; }
 .chat-bubble.ai   { align-self:flex-start; }
+
+/* Hide the big chat area if present elsewhere */
+#chat-area:not(.chat-area) {
+  display: none !important;
+}
 
 .graph-card {
   background: var(--card-bg);
@@ -124,4 +129,30 @@ body {
 .chart-canvas{
   width:100% !important;
   height:500px !important;   /* choose whatever height you liked before */
+}
+
+.loading-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #263238;
+  color: #fff;
+  font-size: 1.2em;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--card-border);
+  position: fixed;
+  left: 0; right: 0; top: 150px; z-index: 100;
+}
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 4px solid #fff;
+  border-top: 4px solid #005f5f;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

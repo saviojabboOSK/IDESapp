@@ -123,12 +123,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const promptInput = document.getElementById("global-prompt");
   const sendBtn = document.getElementById("global-send");
   const chatArea = document.getElementById("chat-area");
+  const loadingBar = document.getElementById("loading-bar");
   async function sendPrompt() {
     const txt = promptInput.value.trim();
     if (!txt) return;
     show("generate");
     appendBubble(txt, "user");
     promptInput.value = "";
+    loadingBar.style.display = "flex";
     try {
       const payload = { prompt: txt };
       console.log("Sending /api/analyze payload:", payload);
@@ -156,6 +158,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (err) {
       appendBubble(`Error: ${err.message}`, "ai");
+    } finally {
+      loadingBar.style.display = "none";
     }
   }
   sendBtn.addEventListener("click", sendPrompt);
@@ -215,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     show("generate");
     appendBubble(txt, "user");
     promptInput.value = "";
+    loadingBar.style.display = "flex";
     try {
       // Append user message to chat history
       chatHistory.push({ role: "user", content: txt });
@@ -255,6 +260,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (err) {
       appendBubble(`Error: ${err.message}`, "ai");
+    } finally {
+      loadingBar.style.display = "none";
     }
   }
 
