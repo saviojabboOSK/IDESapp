@@ -1,0 +1,82 @@
+[
+  {
+    "title": "New York: Temperature & Humidity (7 Days)",
+    "series": [
+      {
+        "label": "Temperature (°F)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [75, 78, 80, 77, 74, 72, 76]
+      },
+      {
+        "label": "Humidity (%)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [60, 58, 62, 65, 63, 61, 64]
+      }
+    ],
+    "is_fav": false
+  },
+  {
+    "title": "Los Angeles: Temperature & Humidity (7 Days)",
+    "series": [
+      {
+        "label": "Temperature (°F)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [85, 87, 88, 86, 84, 83, 85]
+      },
+      {
+        "label": "Humidity (%)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [55, 53, 50, 52, 54, 56, 55]
+      }
+    ],
+    "is_fav": true
+  },
+  {
+    "title": "Chicago: Temperature & Humidity (7 Days)",
+    "series": [
+      {
+        "label": "Temperature (°F)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [70, 72, 74, 73, 71, 69, 70]
+      },
+      {
+        "label": "Humidity (%)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [65, 67, 66, 64, 63, 62, 64]
+      }
+    ],
+    "is_fav": false
+  },
+  {
+    "title": "Houston: Temperature & Humidity (7 Days)",
+    "series": [
+      {
+        "label": "Temperature (°F)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [90, 92, 93, 91, 89, 88, 90]
+      },
+      {
+        "label": "Humidity (%)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [70, 72, 75, 74, 73, 71, 72]
+      }
+    ],
+    "is_fav": false
+  },
+  {
+    "title": "Miami: Temperature & Humidity (7 Days)",
+    "series": [
+      {
+        "label": "Temperature (°F)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [88, 90, 91, 89, 87, 86, 88]
+      },
+      {
+        "label": "Humidity (%)",
+        "x": [1, 2, 3, 4, 5, 6, 7],
+        "y": [75, 78, 80, 79, 77, 76, 78]
+      }
+    ],
+    "is_fav": true
+  }
+]

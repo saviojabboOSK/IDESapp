@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sensor Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="topbar">
+      <img src="/static/logo1.png" class="logo small" />
+      <img src="/static/logo2.png" class="logo medium" />
+      <div class="spacer"></div>
+      <img src="/static/logo3.png" class="logo large" />
+      <div class="spacer"></div>
+      <div class="nav">
+        <button data-page="home" class="nav-btn">Home</button>
+        <button data-page="floor" class="nav-btn">Floor</button>
+        <button data-page="generate" class="nav-btn">Generate</button>
+        <button data-page="graphs" class="nav-btn">Graphs</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <section id="home" class="page">
+        <h2>Favorites</h2>
+        <div id="home-graphs" class="grid"></div>
+      </section>
+      <section id="floor" class="page hidden">
+        <h2>Floor Plans</h2>
+        <div class="grid">
+          <div class="floor-card">
+            <h3>ADIC IAQ</h3>
+            <img src="/static/floor1.png" />
+          </div>
+
+          <div class="floor-card">
+            <h3>ADIC Temp. F</h3>
+            <img src="/static/floor2.png" />
+          </div>
+
+          <div class="floor-card">
+            <h3>ADIC Humidity</h3>
+            <img src="/static/floor3.png" />
+          </div>
+        </div>
+      </section>
+
+      <section id="generate" class="page hidden">
+        <div id="chat-area" class="chat-area"></div>
+      </section>
+
+      <section id="graphs" class="page hidden">
+        <h2>All Graphs</h2>
+        <div id="all-graphs" class="grid"></div>
+      </section>
+    </div>
+
+    <div class="chat-bar">
+      <input id="global-prompt" type="text" placeholder="Type your message…" />
+      <button id="global-send">Send</button>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

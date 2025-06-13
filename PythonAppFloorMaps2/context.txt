@@ -1,0 +1,304 @@
+1. Project Overview
+
+This is a PySide6-based desktop GUI called Sensor Dashboard.
+
+Users type natural-language prompts into a chat box (“Generate” page). Each prompt is sent to OpenAI’s GPT (via a background thread). The assistant responds with a JSON payload that describes one or more data series to plot.
+
+Each response appears in the chat log as a “chat bubble” with the GPT’s explanatory text plus an embedded Matplotlib plot.
+
+Whenever a valid plot payload is returned (single- or multi-series), a corresponding GraphCard (or MultiSeriesGraphCard) is created and displayed on the “Graphs” page; those cards can be favorited, deleted, or opened in a separate window.
+
+Favorited graphs also appear on the “Home” page as full-width plots with a yellow star overlay.
+
+All graphs (their data, titles, and favorite state) are saved to and loaded from a local graphs.json file, so closing/reopening the app persists everything.
+
+2. File Structure & Purpose
+
+bash
+Copy
+Edit
+/main.py
+/workers.py
+/widgets/
+    chat_entry.py
+    graph_card.py
+    home_graph.py
+    multi_series_chat_entry.py
+    multi_series_graph_card.py
+graphs.json    (auto-generated at runtime)
+main.py
+
+Creates the top‐level QMainWindow with three pages: Home, Generate, Graphs.
+
+Builds:
+
+A top bar containing three logos (logo1, logo2, logo3) and navigation buttons (Home, Generate, Graphs).
+
+A small loading bar (shown above the chat box) during GPT calls.
+
+A stacked widget for the three pages:
+
+Home page: a scroll area whose layout holds any favorited graph widgets.
+
+Generate page: a scroll area whose layout holds ChatEntry bubbles.
+
+Graphs page: a scrollable grid layout holding all non-fav/fav GraphCard or MultiSeriesGraphCard widgets.
+
+A floating chat input overlay (a transparent, rounded background plus a QLineEdit + “Send” button).
+
+Maintains:
+
+self.chat_history: a list of message dictionaries (system, user, assistant).
+
+self.graph_cards: a list of all GraphCard/MultiSeriesGraphCard instances (so we can reorder them or re-save).
+
+Hooks up:
+
+forward_to_generate(): collects the user’s text, appends it to self.chat_history, shows the loading bar, disables input, and spawns a ChatWorker thread.
+
+handle_result(description, title, series_list): receives the JSON payload from GPT, builds either a ChatEntry (for one series) or MultiSeriesChatEntry (for multiple series). It also constructs and adds a matching GraphCard or MultiSeriesGraphCard to the grid. Finally, it saves all graphs to graphs.json.
+
+Navigation methods: show_home(), show_generate(), show_graphs() each switch pages and highlight the proper button. The “Graphs” page reorder logic always places favorited cards first, then unfavorited.
+
+Scroll propagation: installs a ScrollPropagator event filter on every scroll-area so that if you hover over a plot (or any child), the wheel still scrolls the parent page.
+
+Persistence:
+
+On startup, calls load_graphs(): reads graphs.json, reconstructs each saved graph card (single-series or multi-series), and re-inserts them into the grid—also re-favorites ones that were marked is_fav.
+
+Whenever a graph is created, favorited/unfavorited, or deleted, save_graphs() overwrites graphs.json with an array of objects like:
+
+json
+Copy
+Edit
+[
+  {
+    "title": "...",
+    "series": [
+      { "label": "...", "x": [...], "y": [...] },
+      { "label": "...", "x": [...], "y": [...] }
+    ],
+    "is_fav": true
+  },
+  …
+]
+Conversions:
+
+If x values are date strings (ISO format), they get converted to Matplotlib date numbers (mdates.date2num). When saving back, we turn them back into strings "YYYY-MM-DD".
+
+If x values are categorical (non-numeric, non-date), we store them as a plain Python list of labels and reconstruct by plotting at integer indices + labeling the ticks.
+
+workers.py
+
+Contains a single class, ChatWorker(QThread). Its job:
+
+Accept a copy of chat_history, call OpenAI’s Chat Completions endpoint (model "gpt-4o-mini") with those messages.
+
+Parse the response content (expected to be exactly one JSON object) into (description, title, series_list). If parsing fails or there’s a connection error, fallback to an empty series with an error message.
+
+Emit a Qt signal result_ready(str, str, list) with those three fields.
+
+widgets/chat_entry.py
+
+Defines:
+
+ClickableCanvas (subclass of Matplotlib’s FigureCanvasQTAgg):
+
+Overrides mousePressEvent to call a callback (so clicking a plot can open a full-size popup).
+
+Overrides wheelEvent to locate the nearest ancestor QScrollArea and scroll it, instead of zooming.
+
+ChatEntry(QWidget):
+
+A translucent, rounded QFrame “bubble” that contains:
+
+A right-aligned, bold, blue QLabel for the user’s prompt (selectable text).
+
+A left-aligned, plain QLabel for GPT’s description (selectable).
+
+If valid x_data/y_data are passed in, a Matplotlib plot is created:
+
+Height is doubled relative to earlier versions, and width is expanding.
+
+If is_date==True, it sets up a DateFormatter("%Y-%m-%d") on the x-axis and rotates tick labels.
+
+Otherwise, if categorical labels were provided, it manually sets tick positions and labels.
+
+Grid lines are drawn with a light dashed style.
+
+The canvas is wrapped in ClickableCanvas so you can click to pop up the full window or scroll by hovering.
+
+If no_random_plot=True, it omits the plot entirely (for purely textual responses or parse failures).
+
+widgets/graph_card.py
+
+Defines:
+
+Another ClickableCanvas identical to the one in chat_entry.py (wheel→scroll, click→callback).
+
+GraphCard(QWidget) for single-series graphs:
+
+Minimum height is fixed so that cards never collapse entirely.
+
+A small figure (≈3×4.4) is drawn using the passed-in x_data/y_data, with date/categorical support.
+
+X-axis: if is_date, use DateFormatter("%Y-%m-%d"); else, if x_labels list is provided, set ticks accordingly.
+
+Y-axis: hidden ticks, but grid lines shown.
+
+The widget has a thin black border with a slight rounding (4px).
+
+Two buttons at the bottom:
+
+“☆ Favorite” (toggleable). Clicking it calls toggle_fav().
+
+“🗑 Delete.” Confirm → remove both from the grid and (if favorited) also from Home.
+
+toggle_fav():
+
+If turning on, change text to “★ Favorited” (yellow text, no background) and create a matching HomeGraph above.
+
+If turning off, revert text to “☆ Favorite,” remove the HomeGraph from the Home page, and delete it.
+
+Always call main_window.save_graphs() after toggling.
+
+open_full(): opens a new QMainWindow with a larger version of the same figure (date formatting and grid remain).
+
+widgets/home_graph.py
+
+Defines HomeGraph(QWidget) for a favorited plot:
+
+Very similar to GraphCard’s plotting logic, but at full width (expanding both horizontally and vertically).
+
+Uses ClickableCanvas so wheel events propagate up to the Home scroll area.
+
+X-axis for dates uses AutoDateLocator() + AutoDateFormatter() to automatically choose legible tick intervals (no overlapping).
+
+A small yellow star button (“★”) in the bottom-right corner allows removal of the favorite (calls back to toggle_fav() on the parent GraphCard).
+
+widgets/multi_series_chat_entry.py
+
+Very similar to ChatEntry, but supports multiple series:
+
+Its series parameter is a list of dicts:
+
+py
+Copy
+Edit
+[
+  { "label": "City A", "x": [...], "y": [...], "x_labels": [...], "is_date": True/False },
+  { "label": "City B", "x": [...], "y": [...], … },
+  …
+]
+The figure’s width is set to (6, 4) so that if you overlay, say, 14 days of daily data from two places, it doesn’t get clipped.
+
+For date‐based series, it uses AutoDateLocator() + AutoDateFormatter() so ticks automatically adjust and never overlap.
+
+It plots each series in a different line (Matplotlib automatically picks contrasting colors) and shows a legend.
+
+The canvas is again wrapped in ClickableCanvas so clicking opens a full-size window, and hovering lets you scroll the chat area.
+
+widgets/multi_series_graph_card.py
+
+Equivalent to GraphCard but for multiple series:
+
+Minimum height is fixed to 220px.
+
+Plots all series in one thumbnail, uses the same auto-date formatting for X if any series is date-based.
+
+If categorical, only the first series’ x_labels are used for tick labels (assuming all share the same categories).
+
+Grid lines, legend, and a black border with slight rounding remain.
+
+“☆ Favorite” toggles just like GraphCard, except it only displays the first series on Home (so the Home page shows a single-line thumbnail). Clicking the card’s canvas still opens a full modal showing all overlaid lines.
+
+“🗑 Delete” removes both from Graphs and Home (if favorited).
+
+3. How Data Flows at Runtime
+
+User types “Plot humidity in CA over the past two weeks and overlay with temperature in WI.”
+
+forward_to_generate() captures that prompt, disables input, shows the loading bar, and spins up ChatWorker.
+
+ChatWorker runs on its own thread:
+
+Calls OpenAI with a system & user message instructing GPT to output exactly one JSON object with fields:
+
+css
+Copy
+Edit
+{ 
+  "description": "...", 
+  "title": "...", 
+  "series": [ { "label":"CA Humidity", "x":[…], "y":[…] }, 
+              { "label":"WI Temp",    "x":[…], "y":[…] } ] 
+}
+Once GPT responds, ChatWorker parses it, extracts description, title, and series_list, and emits result_ready(description, title, series_list).
+
+In MainWindow.handle_result():
+
+The loading bar is hidden and input is re-enabled.
+
+A new MultiSeriesChatEntry is created (parented to the inner widget of the chat’s scroll area). Because we passed parent=self.chat_scroll.widget(), the bubble lives inside the scroll area’s content widget.
+
+That chat bubble draws an expanded figure (6×4), overlaid, with date formatting so ticks do not overlap.
+
+If series_list was nonempty (two series in this example), a matching MultiSeriesGraphCard is created and appended to self.graph_cards, then added at the next available grid position.
+
+Finally, save_graphs() writes out all graph_cards to graphs.json.
+
+4. Persistence & State
+
+On each startup, load_graphs()—called from MainWindow.__init__()—reads graphs.json, reconstructs every saved card (including whether it was favorited) and places it into the “Graphs” grid. If it was favorited, the card’s .toggle_fav() is immediately called so a HomeGraph is also added to the Home page.
+
+When you favorite/unfavorite or delete any card, save_graphs() wipes and rewrites graphs.json in one shot.
+
+5. Key Architectural Details
+
+Threading: All GPT calls happen in workers.ChatWorker, a subclass of QThread. This ensures the main UI remains responsive; once the worker emits its signal, the main thread (UI) handles plotting.
+
+Scroll Propagation: Both ChatEntry’s and GraphCard’s embedded canvases are wrapped in ClickableCanvas, which reroutes any wheel event upward to the nearest QScrollArea. This guarantees that scrolling always works, even if the mouse is on top of a plot.
+
+Plot Formatting:
+
+Single-series and multi-series code each handle date vs. categorical x-values.
+
+When is_date=True, x-values come in as Python datetime objects (converted from ISO strings). We then plot them as Matplotlib date numbers, using AutoDateLocator/AutoDateFormatter so ticks are placed sensibly (e.g., one tick per day, or every few days, depending on range).
+
+Categorical series simply assign integer indices (np.arange(len(x_labels))) to x, then label ticks with the provided string labels.
+
+Grid lines are shown as a light dashed style (linestyle="--", alpha=0.3).
+
+UI Layout:
+
+All major widgets inside each page are placed in a QScrollArea with setWidgetResizable(True). This allows content to grow. We also install a ScrollPropagator to forward wheel events from any child back to the scroll area.
+
+Cards on the “Graphs” page live in a QGridLayout that automatically reflows into two columns. Favorited cards are always re-injected at the top when you click “Graphs.”
+
+Home page uses a QVBoxLayout so favorited graphs stack vertically; each HomeGraph is a full-width plot that can be scrolled past.
+
+6. How to Extend / Test
+
+To add a brand-new prompt, type natural language into the chat box. Whatever GPT returns in that strictly JSON format will become a plot.
+
+If GPT ever returns mismatched lengths (e.g. 30 dates but 32 y-values), the code automatically truncates to the minimum common length before plotting.
+
+For multi-series overlays, the code currently picks distinct colors automatically—if you want custom colors, you’d modify MultiSeriesChatEntry to pass explicit color lists to each ax.plot(...).
+
+To simulate bad JSON or no plot, GPT should reply with "series": []; the code will simply show a chat bubble without any plot.
+
+7. Environment & Dependencies
+
+Python ≥ 3.8 (tested on 3.10/3.11).
+
+PySide6 for all Qt components.
+
+Matplotlib (backend qtagg) for plotting.
+
+qt_material for theming (applies a “dark_teal” theme).
+
+openai Python library for GPT calls.
+
+A valid OpenAI key must be hard-coded into workers.py (or supplied via environment).
+
+All UI images (logo1.png, logo2.png, logo3.png) must exist in the same folder.
