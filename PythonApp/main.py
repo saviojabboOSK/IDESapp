@@ -21,12 +21,14 @@ from widgets.home_graph import HomeGraph
 from widgets.multi_series_chat_entry import MultiSeriesChatEntry
 from widgets.multi_series_graph_card import MultiSeriesGraphCard
 
+# Define paths for storing graphs, floormaps, and images.
 GRAPH_STORE_PATH = os.path.join(os.path.dirname(__file__), "graphs.json")
 FLOORMAP_STORE_PATH = os.path.join(os.path.dirname(__file__), "floormaps.json")
 FLOORMAP_IMAGE_DIR = os.path.join(os.path.dirname(__file__), "floormap_images")
 
 # -----------------------------------------------------------------------------
 
+# ScrollPropagator class: Ensures smooth scrolling behavior across child widgets.
 class ScrollPropagator(QObject):
     """
     Event filter that forwards wheel events to a QScrollArea so that scrolling works
@@ -39,6 +41,7 @@ class ScrollPropagator(QObject):
     def eventFilter(self, obj, event):
         from PySide6.QtGui import QWheelEvent
         if isinstance(event, QWheelEvent):
+            # Adjust the scroll bar value based on wheel event.
             self.scroll_area.verticalScrollBar().setValue(
                 self.scroll_area.verticalScrollBar().value() - event.angleDelta().y()
             )
@@ -48,6 +51,7 @@ class ScrollPropagator(QObject):
 
 # -----------------------------------------------------------------------------
 
+# MainWindow class: Represents the main application window.
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -508,6 +512,22 @@ class MainWindow(QMainWindow):
 
     # ---------- Persistence: save/load graphs.json and floormaps.json ----------
     def save_graphs(self):
+        def is_valid_graph(graph):
+            if not isinstance(graph, dict):
+                return False
+            if not {"title", "series", "is_fav"}.issubset(graph):
+                return False
+            if not isinstance(graph["series"], list) or not graph["series"]:
+                return False
+            for s in graph["series"]:
+                if not isinstance(s, dict):
+                    return False
+                if not {"label", "x", "y"}.issubset(s):
+                    return False
+                if not isinstance(s["x"], list) or not isinstance(s["y"], list):
+                    return False
+            return True
+
         to_save = []
         for card in self.graph_cards:
             if isinstance(card, MultiSeriesGraphCard):
@@ -523,14 +543,17 @@ class MainWindow(QMainWindow):
                     entry["y"] = s["y"].tolist()
                     series_list.append(entry)
 
-                to_save.append({
+                graph_obj = {
                     "title": card.title,
                     "series": series_list,
                     "is_fav": card.is_fav
-                })
+                }
+                if is_valid_graph(graph_obj):
+                    to_save.append(graph_obj)
+                else:
+                    print(f"Warning: Invalid graph not saved: {graph_obj}")
 
             else:
-                # Single-series GraphCard
                 if card.is_date and card.x_labels:
                     x_field = [d.strftime("%Y-%m-%d") for d in card.x_labels]
                 elif card.x_labels:
@@ -538,7 +561,7 @@ class MainWindow(QMainWindow):
                 else:
                     x_field = card.x.tolist()
 
-                to_save.append({
+                graph_obj = {
                     "title": card.title,
                     "series": [{
                         "label": card.title,
@@ -546,7 +569,11 @@ class MainWindow(QMainWindow):
                         "y": card.y.tolist()
                     }],
                     "is_fav": card.is_fav
-                })
+                }
+                if is_valid_graph(graph_obj):
+                    to_save.append(graph_obj)
+                else:
+                    print(f"Warning: Invalid graph not saved: {graph_obj}")
 
         try:
             with open(GRAPH_STORE_PATH, "w", encoding="utf-8") as f:
@@ -721,3 +748,27 @@ if __name__ == "__main__":
     window.show()
     sys.exit(app.exec())
 # END OF main.py
+
+@api.post("/api/analyze")
+async def analyze(req: AnalyzeRequest):
+    try:
+        print(f"Received analyze request with chat history: {req.chat_history}")
+        prompt = """
+        Generate a valid graph JSON object based on the following example:
+        {
+            "description": "This chart shows temperature trends.",
+            "title": "Temperature Over Time",
+            "series": [
+                {"label": "New York", "x": [1,2,3], "y": [70,72,68]},
+                {"label": "Chicago", "x": [1,2,3], "y": [65,67,66]}
+            ]
+        }
+        Ensure all `x` and `y` lists are of equal length and multiple datasets are added to the `series` list.
+        """
+        retries = 5
+        for _ in range(retries):
+            response = await call_openai(prompt)
+            graph = json.loads(response)
+            if is_valid_graph(graph):
+                return graph
+        raise HTTPException(status_code=400, detail="Failed to generate a valid graph after multiple retries.")

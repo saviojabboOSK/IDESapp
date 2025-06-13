@@ -441,6 +441,22 @@ class MainWindow(QMainWindow):
         return divmod(count, 2)
 
     # ---------- Persistence: save/load graphs.json ----------
+    def is_valid_graph(graph):
+        if not isinstance(graph, dict):
+            return False
+        if not {"title", "series", "is_fav"}.issubset(graph):
+            return False
+        if not isinstance(graph["series"], list) or not graph["series"]:
+            return False
+        for s in graph["series"]:
+            if not isinstance(s, dict):
+                return False
+            if not {"label", "x", "y"}.issubset(s):
+                return False
+            if not isinstance(s["x"], list) or not isinstance(s["y"], list):
+                return False
+        return True
+
     def save_graphs(self):
         data = []
         for card in self.graph_cards:
@@ -457,14 +473,17 @@ class MainWindow(QMainWindow):
                     entry["y"] = s["y"].tolist()
                     series_list.append(entry)
 
-                data.append({
+                graph_obj = {
                     "title": card.title,
                     "series": series_list,
                     "is_fav": card.is_fav
-                })
+                }
+                if is_valid_graph(graph_obj):
+                    data.append(graph_obj)
+                else:
+                    print(f"Warning: Invalid graph not saved: {graph_obj}")
 
             else:
-                # Single-series GraphCard
                 if card.is_date and card.x_labels:
                     x_field = [d.strftime("%Y-%m-%d") for d in card.x_labels]
                 elif card.x_labels:
@@ -472,7 +491,7 @@ class MainWindow(QMainWindow):
                 else:
                     x_field = card.x.tolist()
 
-                data.append({
+                graph_obj = {
                     "title": card.title,
                     "series": [{
                         "label": card.title,
@@ -480,7 +499,11 @@ class MainWindow(QMainWindow):
                         "y": card.y.tolist()
                     }],
                     "is_fav": card.is_fav
-                })
+                }
+                if is_valid_graph(graph_obj):
+                    data.append(graph_obj)
+                else:
+                    print(f"Warning: Invalid graph not saved: {graph_obj}")
 
         try:
             with open(GRAPH_STORE_PATH, "w", encoding="utf-8") as f:
