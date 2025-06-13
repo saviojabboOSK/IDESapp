@@ -4,6 +4,9 @@ import json
 from PySide6.QtCore import QThread, Signal
 from openai import OpenAI
 
+# --- ChatWorker: Background LLM Calls ---
+# QThread that sends chat history to OpenAI, parses JSON, emits result for UI.
+
 class ChatWorker(QThread):
     """
     Worker thread that sends chat_history to OpenAI, parses JSON,
@@ -49,6 +52,9 @@ class ChatWorker(QThread):
 
         self.result_ready.emit(desc, title, series)
 
+
+# --- call_openai: FastAPI Helper ---
+# Synchronous helper for FastAPI to call OpenAI and parse/return result as dict.
 
 # --- FastAPI helper ----------------------------------------------------------
 # --------------------------------------------------------------------------

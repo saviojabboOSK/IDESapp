@@ -23,6 +23,9 @@ from widgets.multi_series_chat_entry import MultiSeriesChatEntry
 from widgets.multi_series_graph_card import MultiSeriesGraphCard
 from widgets.floor_page import FloorPage
 
+# --- Imports: standard, PySide6, FastAPI, project modules ---
+# Imports required libraries for GUI, API, and utilities.
+
 # ─── FastAPI INTEGRATION ──────────────────────────────────────────────────────
 import threading
 from fastapi.middleware.cors import CORSMiddleware
@@ -143,6 +146,27 @@ def _start_api():
 class AnalyzeRequest(BaseModel):
     chat_history: List[Dict[str, str]]
 
+def is_valid_graph(graph):
+    if not isinstance(graph, dict):
+        return False
+    if not {"title", "series", "is_fav"}.issubset(graph):
+        return False
+    if not isinstance(graph["series"], list) or not graph["series"]:
+        return False
+    for s in graph["series"]:
+        if not isinstance(s, dict):
+            return False
+        if not {"label", "x", "y"}.issubset(s):
+            return False
+        if not isinstance(s["x"], list) or not isinstance(s["y"], list):
+            return False
+        if len(s["x"]) != len(s["y"]) or len(s["x"]) == 0:
+            return False
+    return True
+
+# --- API Endpoints: Home, Graphs, Favorite, Delete ---
+# Defines endpoints for serving the main page, graphs data, favoriting, and deleting graphs.
+
 @api.post("/api/analyze")
 async def analyze(req: AnalyzeRequest):
     try:
@@ -154,65 +178,77 @@ async def analyze(req: AnalyzeRequest):
         if not req.chat_history or req.chat_history[0].get("role") != "system":
             system_prompt = {
                 "role": "system",
-                "content": ("You are a Python plotting assistant. "
-                            "Return ONE JSON with fields: description, title, series[]. "
-                            "Each series must have label (string), x (list), y (list) of equal length.")
+                "content": (
+                    "You are a Python plotting assistant.\n"
+                    "Return ONLY a single JSON object with these fields: description, title, series, is_fav.\n"
+                    "Example:\n"
+                    '{"description": "This chart shows temperature trends.", "title": "Temperature Over Time", "series": [\n'
+                    '  {"label": "New York", "x": [1,2,3], "y": [70,72,68]},\n'
+                    '  {"label": "Chicago", "x": [1,2,3], "y": [65,67,66]}\n'
+                    '], "is_fav": false}\n'
+                    "For multiple datasets (e.g., comparing cities or variables), add multiple objects to the 'series' list, each with its own label, x, and y.\n"
+                    "All x and y lists must be the same length and non-empty for each series.\n"
+                    "Do NOT return markdown or any text outside the JSON.\n"
+                    "The top-level object MUST include is_fav (boolean)."
+                )
             }
             chat_history = [system_prompt] + req.chat_history
         else:
             chat_history = req.chat_history
 
-        raw_result = await asyncio.to_thread(call_openai, chat_history)
-        print(f"OpenAI raw call result: {raw_result}")
+        max_retries = 5
+        for attempt in range(max_retries):
+            raw_result = await asyncio.to_thread(call_openai, chat_history)
+            print(f"OpenAI raw call result (attempt {attempt+1}): {raw_result}")
 
-        # Validate and normalize the result
-        def normalize_series(series):
-            normalized = []
-            for i, s in enumerate(series):
-                label = s.get("label") or f"Series {i+1}"
-                x = s.get("x", [])
-                y = s.get("y", [])
-                # Ensure x and y are lists of equal length
-                if not isinstance(x, list):
-                    x = list(x) if hasattr(x, "__iter__") else []
-                if not isinstance(y, list):
-                    y = list(y) if hasattr(y, "__iter__") else []
-                min_len = min(len(x), len(y))
-                x = x[:min_len]
-                y = y[:min_len]
-                normalized.append({"label": label, "x": x, "y": y})
-            return normalized
+            def normalize_series(series):
+                normalized = []
+                for i, s in enumerate(series):
+                    label = s.get("label") or f"Series {i+1}"
+                    x = s.get("x", [])
+                    y = s.get("y", [])
+                    if not isinstance(x, list):
+                        x = list(x) if hasattr(x, "__iter__") else []
+                    if not isinstance(y, list):
+                        y = list(y) if hasattr(y, "__iter__") else []
+                    min_len = min(len(x), len(y))
+                    x = x[:min_len]
+                    y = y[:min_len]
+                    if min_len > 0:
+                        normalized.append({"label": label, "x": x, "y": y})
+                return normalized
 
-        try:
-            parsed = raw_result
-            if isinstance(raw_result, str):
-                import json
-                # Strip markdown code block if present
-                if raw_result.startswith("```json"):
-                    raw_result = raw_result.strip("`").strip()
-                    # Remove the leading 'json' if present
-                    if raw_result.startswith("json"):
-                        raw_result = raw_result[4:].strip()
-                parsed = json.loads(raw_result)
-            description = parsed.get("description", "")
-            title = parsed.get("title", "")
-            series = parsed.get("series", [])
-            if not isinstance(series, list):
-                series = []
-            series = normalize_series(series)
-        except Exception as e:
-            print(f"Error parsing OpenAI result: {e}")
-            description = raw_result if isinstance(raw_result, str) else str(raw_result)
-            title = ""
-            series = []
-
-        result = {
-            "description": description,
-            "title": title,
-            "series": series
-        }
-
-        return result
+            try:
+                parsed = raw_result
+                if isinstance(raw_result, str):
+                    import json
+                    if raw_result.startswith("```json"):
+                        raw_result = raw_result.strip("`").strip()
+                        if raw_result.startswith("json"):
+                            raw_result = raw_result[4:].strip()
+                    parsed = json.loads(raw_result)
+                description = parsed.get("description", "")
+                title = parsed.get("title", "")
+                series = parsed.get("series", [])
+                is_fav = parsed.get("is_fav", False)
+                if not isinstance(series, list):
+                    series = []
+                series = normalize_series(series)
+                graph_obj = {"title": title, "series": series, "is_fav": is_fav}
+                if is_valid_graph(graph_obj):
+                    result = {
+                        "description": description,
+                        "title": title,
+                        "series": series,
+                        "is_fav": is_fav
+                    }
+                    return result
+                else:
+                    print(f"Invalid graph on attempt {attempt+1}: {graph_obj}")
+            except Exception as e:
+                print(f"Error parsing OpenAI result on attempt {attempt+1}: {e}")
+                continue
+        raise HTTPException(status_code=422, detail="Could not generate a valid graph after several attempts.")
     except Exception as e:
         print(f"Error in analyze endpoint: {e}")
         raise HTTPException(status_code=422, detail=str(e))
@@ -230,11 +266,48 @@ from fastapi import Request
 
 from pydantic import ValidationError
 
+def is_valid_graph(graph):
+    if not isinstance(graph, dict):
+        return False
+    if not {"title", "series", "is_fav"}.issubset(graph):
+        return False
+    if not isinstance(graph["series"], list) or not graph["series"]:
+        return False
+    for s in graph["series"]:
+        if not isinstance(s, dict):
+            return False
+        if not {"label", "x", "y"}.issubset(s):
+            return False
+        if not isinstance(s["x"], list) or not isinstance(s["y"], list):
+            return False
+    return True
+
+# --- /api/add_graph endpoint ---
+# Validates and saves a new graph to disk, or returns a fallback if invalid.
+
 @api.post("/api/add_graph")
 async def add_graph(request: Request):
     try:
         raw_body = await request.json()
         print(f"Raw /api/add_graph request body: {raw_body}")
+        # Validate using is_valid_graph
+        if not is_valid_graph(raw_body):
+            print("Rejected invalid graph payload.")
+            # Check if graphs.json is empty, and if so, add a fallback graph
+            data = json.load(open(GRAPH_STORE_PATH, "r", encoding="utf-8")) if os.path.exists(GRAPH_STORE_PATH) else []
+            if not data:
+                fallback = {
+                    "title": "Sample Graph",
+                    "series": [{
+                        "label": "Example Series",
+                        "x": [1,2,3,4,5],
+                        "y": [10,20,15,30,25]
+                    }],
+                    "is_fav": False
+                }
+                data.append(fallback)
+                json.dump(data, open(GRAPH_STORE_PATH, "w", encoding="utf-8"), indent=2)
+            raise HTTPException(status_code=422, detail="Invalid graph format. A sample graph is present.")
         payload = GraphBody(**raw_body)
         print(f"Validated /api/add_graph payload: {payload}")
         data = json.load(open(GRAPH_STORE_PATH, "r", encoding="utf-8")) if os.path.exists(GRAPH_STORE_PATH) else []
@@ -573,7 +646,24 @@ class MainWindow(QMainWindow):
         count = self.graphs_grid.count()
         return divmod(count, 2)
 
-    # ---------- Persistence: save/load graphs.json ----------
+                # ---------- Persistence: save/load graphs.json ----------
+    
+    def is_valid_graph(graph):
+        if not isinstance(graph, dict):
+            return False
+        if not {"title", "series", "is_fav"}.issubset(graph):
+            return False
+        if not isinstance(graph["series"], list) or not graph["series"]:
+            return False
+        for s in graph["series"]:
+            if not isinstance(s, dict):
+                return False
+            if not {"label", "x", "y"}.issubset(s):
+                return False
+            if not isinstance(s["x"], list) or not isinstance(s["y"], list):
+                return False
+        return True
+
     def save_graphs(self):
         data = []
         for card in self.graph_cards:
@@ -590,14 +680,17 @@ class MainWindow(QMainWindow):
                     entry["y"] = s["y"].tolist()
                     series_list.append(entry)
 
-                data.append({
+                graph_obj = {
                     "title": card.title,
                     "series": series_list,
                     "is_fav": card.is_fav
-                })
+                }
+                if is_valid_graph(graph_obj):
+                    data.append(graph_obj)
+                else:
+                    print(f"Warning: Invalid graph not saved: {graph_obj}")
 
             else:
-                # Single-series GraphCard
                 if card.is_date and card.x_labels:
                     x_field = [d.strftime("%Y-%m-%d") for d in card.x_labels]
                 elif card.x_labels:
@@ -605,7 +698,7 @@ class MainWindow(QMainWindow):
                 else:
                     x_field = card.x.tolist()
 
-                data.append({
+                graph_obj = {
                     "title": card.title,
                     "series": [{
                         "label": card.title,
@@ -613,7 +706,11 @@ class MainWindow(QMainWindow):
                         "y": card.y.tolist()
                     }],
                     "is_fav": card.is_fav
-                })
+                }
+                if is_valid_graph(graph_obj):
+                    data.append(graph_obj)
+                else:
+                    print(f"Warning: Invalid graph not saved: {graph_obj}")
 
         try:
             with open(GRAPH_STORE_PATH, "w", encoding="utf-8") as f:

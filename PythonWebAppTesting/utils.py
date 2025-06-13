@@ -1,6 +1,7 @@
 # utils.py
 
-# (Currently no shared helpers, but you can add functions here later.)
+# --- Utility Functions ---
+# Placeholder for shared helpers. Add utility functions here for reuse.
 
 def example_helper():
     """

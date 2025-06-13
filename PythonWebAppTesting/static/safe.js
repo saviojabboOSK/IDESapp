@@ -8,6 +8,9 @@
 
 /* Wait until DOM is fully parsed so nav buttons & pages exist */
 document.addEventListener("DOMContentLoaded", () => {
+  // --- DOMContentLoaded: App Bootstrapping ---
+  // Sets up navigation, loads graphs, and initializes UI when the page loads.
+
   /* -------------- NAVIGATION -------------- */
   const pages = document.querySelectorAll(".page");
   const navBtns = document.querySelectorAll(".nav-btn");
@@ -28,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* Default page */
   show("home");
+
+  // --- Data Loading & Rendering ---
+  // Fetches graphs from backend and renders Home/Graphs pages.
 
   /* -------------- DATA + RENDER -------------- */
   let graphs = [];
@@ -53,6 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // --- Navigation ---
+  // Handles page switching and active nav button highlighting.
 
   function buildCard(g, idx, withControls) {
     const sampleX = g.series[0].x[0];
@@ -116,7 +125,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return card;
   }
 
-  /* -------------- API actions -------------- */
+  // --- API Actions ---
+  // Handles favorite and delete actions via API calls and updates UI.
+
   async function toggleFav(index) {
     graphs[index].is_fav = !graphs[index].is_fav; // optimistic
     render();

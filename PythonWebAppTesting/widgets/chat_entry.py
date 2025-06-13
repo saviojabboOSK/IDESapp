@@ -12,6 +12,8 @@ from matplotlib.figure import Figure
 import matplotlib.dates as mdates
 
 
+# --- ClickableCanvas: Custom Matplotlib Canvas ---
+# Handles mouse and wheel events for plot interactivity and scroll propagation.
 class ClickableCanvas(FigureCanvas):
     """
     Forwards mouse clicks to a callback and wheel events to the nearest QScrollArea,
@@ -38,6 +40,8 @@ class ClickableCanvas(FigureCanvas):
             super().wheelEvent(event)
 
 
+# --- ChatEntry: Chat Bubble Widget ---
+# Displays user prompt, AI response, and an optional embedded plot in the chat UI.
 class ChatEntry(QWidget):
     """
     A single chat bubble in the Generate page. Displays:

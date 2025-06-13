@@ -5,6 +5,8 @@ from openai import AsyncOpenAI
 CLIENT    = AsyncOpenAI()          # uses OPENAI_API_KEY env-var
 GRAPH_MAX = 30                     # clip long series for readability
 
+# --- NOAA Data Fetching ---
+# Fetches temperature data from NOAA API for a given state and date range.
 async def _fetch_noaa_temps(state: str, days: int = 30):
     """
     Return (dates:list[str YYYY-MM-DD], temps:list[float]) for the last <days>
@@ -35,6 +37,8 @@ async def _fetch_noaa_temps(state: str, days: int = 30):
                  for d in raw]
         return dates[-days:], temps[-days:]
 
+# --- analyze_prompt: LLM/Rule-based Graph Generation ---
+# Decides if the prompt is a weather request (rule-based) or sends to GPT-4. Always returns a dict with description, title, and series.
 async def analyze_prompt(prompt: str) -> dict:
     """
     Parse <prompt>, decide if it's a weather-graph request, otherwise ask GPT-4.

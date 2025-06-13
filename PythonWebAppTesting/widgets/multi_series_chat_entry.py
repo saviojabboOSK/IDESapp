@@ -13,6 +13,8 @@ from matplotlib.figure import Figure
 from widgets.graph_card import ClickableCanvas
 
 
+# --- MultiSeriesChatEntry: Multi-Series Chat Bubble Widget ---
+# Displays a chat bubble with multiple series plotted, supporting date/categorical axes.
 class MultiSeriesChatEntry(QWidget):
     """
     A chat bubble for multi-series plots in the Generate page.

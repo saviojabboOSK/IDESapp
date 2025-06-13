@@ -8,6 +8,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   let chatHistory = [];
 
+  // --- DOMContentLoaded: App Bootstrapping ---
+  // Sets up navigation, loads graphs, and initializes UI when the page loads.
+
   /* ---------- NAVIGATION ---------- */
   const pages = document.querySelectorAll(".page");
   const navBtns = document.querySelectorAll(".nav-btn");
@@ -25,6 +28,9 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   show("home");
 
+  // --- Data Loading ---
+  // Fetches graphs from backend and triggers render.
+
   /* ---------- DATA ---------- */
   let graphs = [];
   async function loadGraphs() {
@@ -32,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     graphs = await res.json();
     render();
   }
+
+  // --- Render Functions ---
+  // Renders graph cards for Home and Graphs pages, including chart drawing and controls.
 
   /* ---------- RENDER ---------- */
   function render() {
@@ -97,6 +106,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return card;
   }
+
+  // --- API Actions ---
+  // Handles favorite and delete actions via API calls and updates UI.
 
   /* ---------- API ACTIONS ---------- */
   async function toggleFav(i) {

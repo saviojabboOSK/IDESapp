@@ -12,6 +12,8 @@ from matplotlib.figure import Figure
 import matplotlib.dates as mdates
 
 
+# --- ClickableCanvas: Custom Matplotlib Canvas ---
+# Handles mouse and wheel events for plot interactivity and scroll propagation.
 class ClickableCanvas(FigureCanvas):
     """Wheel-events scroll parent QScrollArea; clicks open popup."""
     def __init__(self, fig, onclick=None, parent=None):
@@ -34,6 +36,8 @@ class ClickableCanvas(FigureCanvas):
             super().wheelEvent(ev)
 
 
+# --- GraphCard: Single-Series Graph Card Widget ---
+# Displays a single-series graph card with plot, title, and favorite button in the UI.
 class GraphCard(QWidget):
     """
     Card in the Graphs page:

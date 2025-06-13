@@ -1,4 +1,6 @@
-// NAVIGATION
+// --- Navigation ---
+// Handles page switching and active nav button highlighting.
+
 const navBtns = document.querySelectorAll(".nav-btn");
 navBtns.forEach((b) => {
   b.addEventListener("click", () => {
@@ -12,7 +14,9 @@ navBtns.forEach((b) => {
 });
 navBtns[0].click(); // start on Home
 
-// LOAD + RENDER
+// --- Data Loading & Rendering ---
+// Fetches graphs from backend and renders Home/Graphs pages.
+
 async function loadGraphs() {
   // fetch from root; graphs.json must live in static/
   const res = await fetch("/graphs.json");
@@ -104,6 +108,9 @@ function renderGraphs(list, container) {
     });
   });
 }
+
+// --- Card Builder & Chart Drawing ---
+// Builds graph cards and draws charts for each graph.
 
 // CHAT BAR
 const promptInput = document.getElementById("global-prompt");
