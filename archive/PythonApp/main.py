@@ -4,6 +4,9 @@ import sys
 import os
 import json
 import numpy as np
+import shutil  # copy floormap images
+import uuid    # generate unique image filenames
+import matplotlib.dates as mdates  # handle date conversions for graphs
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QPushButton, QLabel, QScrollArea, QLineEdit, QFrame, QStackedWidget,
@@ -13,6 +16,11 @@ from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Qt, QTimer, QObject
 
 from qt_material import apply_stylesheet
+
+# Import utilities for floormap image handling and date conversion
+import shutil
+import uuid
+import matplotlib.dates as mdates
 
 from workers import ChatWorker
 from widgets.chat_entry import ChatEntry
@@ -742,33 +750,9 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     apply_stylesheet(app, theme='dark_teal.xml')
-    from main import MainWindow
+    from archive.PythonApp.main import MainWindow
 
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
 # END OF main.py
-
-@api.post("/api/analyze")
-async def analyze(req: AnalyzeRequest):
-    try:
-        print(f"Received analyze request with chat history: {req.chat_history}")
-        prompt = """
-        Generate a valid graph JSON object based on the following example:
-        {
-            "description": "This chart shows temperature trends.",
-            "title": "Temperature Over Time",
-            "series": [
-                {"label": "New York", "x": [1,2,3], "y": [70,72,68]},
-                {"label": "Chicago", "x": [1,2,3], "y": [65,67,66]}
-            ]
-        }
-        Ensure all `x` and `y` lists are of equal length and multiple datasets are added to the `series` list.
-        """
-        retries = 5
-        for _ in range(retries):
-            response = await call_openai(prompt)
-            graph = json.loads(response)
-            if is_valid_graph(graph):
-                return graph
-        raise HTTPException(status_code=400, detail="Failed to generate a valid graph after multiple retries.")
