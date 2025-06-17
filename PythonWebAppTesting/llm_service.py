@@ -2,7 +2,12 @@
 import httpx, datetime, json, math
 from openai import AsyncOpenAI
 
-CLIENT    = AsyncOpenAI()          # uses OPENAI_API_KEY env-var
+# New Ollama client using OpenAI compatibility API
+CLIENT = AsyncOpenAI(
+    base_url='http://localhost:11434/v1/',
+    api_key='ollama',  # required but not actually used by Ollama
+)
+
 GRAPH_MAX = 30                     # clip long series for readability
 
 # --- NOAA Data Fetching ---
