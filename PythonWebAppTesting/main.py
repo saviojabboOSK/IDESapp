@@ -46,6 +46,8 @@ from workers import call_openai
 
 
 api = FastAPI()
+# Export the FastAPI application as 'app' for Uvicorn
+app = api
 
 # serve static assets under /static
 api.mount("/static", StaticFiles(directory="static"), name="static")
