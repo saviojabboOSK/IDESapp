@@ -1,0 +1,158 @@
+:root {
+  --bg: #263238;
+  --fg: #ECEFF1;
+  --accent: #005f5f;
+  --card-bg: rgba(255,255,255,0.1);
+  --card-border: rgba(255,255,255,0.2);
+  --axis-color: rgba(255,255,255,0.6);
+}
+
+* { box-sizing: border-box; margin:0; padding:0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: Arial, sans-serif;
+  padding-bottom: 60px;
+}
+.topbar {
+  display: flex; align-items: center;
+  padding: 10px; background: #37474F;
+  /* ensure nav height matches logo3 + padding */
+  height: 150px;
+}
+.logo { object-fit: contain; }
+.logo.small  { width:90px;  height:90px; }    /* 1.5× */
+.logo.medium { width:270px; height:270px; }   /* 1.5× */
+.logo.large  { width:420px; height:420px; }   /* 1.5× */
+.spacer { flex:1; }
+.nav { display:flex; gap:12px; }
+.nav-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--fg);
+  padding: 12px 24px;    /* 1.5× of 8px×16px */
+  font-size: 21px;       /* 1.5× of 14px */
+  cursor: pointer;
+  border-radius: 4px;
+}
+.nav-btn.active,
+.nav-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.content { padding:16px; }
+.page.hidden { display:none; }
+.page h2 {
+  margin-bottom:12px;
+  border-bottom:1px solid var(--card-border);
+  padding-bottom:4px;
+}
+
+/* 2–3 per row based on window width */
+.grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(720px,1fr));
+  gap:12px;
+}
+
+.floor-card, .graph-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius:8px; padding:12px;
+}
+
+.floor-card img { width:100%; border-radius:4px; }
+
+/* Smaller grid just for the Floor Plans page */
+#floor .grid{
+  grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+}
+
+
+/* Make chat area a small, left-aligned chatbox */
+.chat-area {
+  display:flex; flex-direction:column; gap:8px;
+  max-height:600px; overflow-y:auto;
+}
+.chat-bubble {
+  background: rgba(255,255,255,0.1);
+  border-radius:8px; padding:8px; max-width:70%;
+}
+.chat-bubble.user { align-self:flex-end; background:#455A64; }
+.chat-bubble.ai   { align-self:flex-start; }
+
+/* Hide the big chat area if present elsewhere */
+#chat-area:not(.chat-area) {
+  display: none !important;
+}
+
+.graph-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius:8px; padding:8px;
+  min-width: 720px;
+  min-height: 360px;
+}
+.graph-card h3 { margin-bottom:8px; font-size:16px; }
+/* 2× height for canvas */
+.graph-card canvas {
+  width:100% !important;
+  height:360px !important;
+}
+
+.chat-bar {
+  position: fixed; bottom:0; left:0; right:0;
+  display:flex; gap:8px;
+  padding:8px 16px; background:#37474F;
+  border-top:1px solid var(--card-border);
+}
+.chat-bar input {
+  flex:1; padding:8px; border:1px solid var(--card-border);
+  border-radius:4px; background:#455A64; color:var(--fg);
+}
+.chat-bar button {
+  padding:8px 16px; background:var(--accent);
+  color:#fff; border:none; border-radius:4px; cursor:pointer;
+}
+
+/* fav & delete */
+.fav-btn, .del-btn {
+  background: transparent; border:none;
+  color: var(--fg); font-size:24px; margin-left:12px;
+  cursor: pointer;
+}
+.fav-btn:hover { color: gold; }
+.del-btn:hover { color: tomato; }
+
+
+.chart-canvas{
+  width:100% !important;
+  height:500px !important;   /* choose whatever height you liked before */
+}
+
+.loading-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #263238;
+  color: #fff;
+  font-size: 1.2em;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--card-border);
+  position: fixed;
+  left: 0; right: 0; top: 150px; z-index: 100;
+}
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 4px solid #fff;
+  border-top: 4px solid #005f5f;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
