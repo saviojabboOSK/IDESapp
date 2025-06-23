@@ -12,8 +12,6 @@
 * [Getting Started](#getting-started)
 * [Usage](#usage)
 * [Contributing](#contributing)
-* [License](#license)
-* [Contact](#contact)
 
 ---
 
@@ -48,7 +46,7 @@ IDES delivers detailed, real-time monitoring of indoor environments—temperatur
 * Node.js ≥ 16.x
 * Python ≥ 3.8
 * Docker & Docker Compose
-* MQTT Broker (e.g., Mosquitto)
+* MicroCloud Installation
 
 ### Quick Start
 
@@ -83,12 +81,3 @@ Visit `http://localhost:8080` to log in and connect your sensors.
 2. Create a branch (`git checkout -b feature/YourFeature`).
 3. Commit changes and push.
 4. Open a Pull Request.
-
-## License
-
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
-
-## Contact
-
-**Project Lead:** Alice Smith – [alice.smith@example.com](mailto:alice.smith@example.com)
-**GitHub:** [https://github.com/your-org/IDES](https://github.com/your-org/IDES)
