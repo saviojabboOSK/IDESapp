@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 
 from qt_material import apply_stylesheet
 
-from workers import ChatWorker
+from workers import ChatWorker, analyze_prompt, call_openai, analyze_prompt_with_timeout
 from widgets.chat_entry import ChatEntry
 from widgets.graph_card import GraphCard
 from widgets.home_graph import HomeGraph
@@ -42,7 +42,7 @@ from fastapi.responses import JSONResponse
 from influx_service import fetch_timeseries
 
 import asyncio
-from workers import call_openai
+from workers import call_openai, analyze_prompt_with_timeout
 
 
 api = FastAPI()
@@ -170,90 +170,76 @@ def is_valid_graph(graph):
 # Defines endpoints for serving the main page, graphs data, favoriting, and deleting graphs.
 
 @api.post("/api/analyze")
-async def analyze(req: AnalyzeRequest):
+async def analyze(req: Request):
     try:
-        print(f"Received analyze request with chat history: {req.chat_history}")
-        if not req.chat_history or not isinstance(req.chat_history, list):
-            raise HTTPException(400, "Missing or invalid chat_history")
+        data = await req.json()
+        print("/api/analyze received body:", data)  # Debug print
 
-        # Add system prompt at the start if not present
-        if not req.chat_history or req.chat_history[0].get("role") != "system":
-            system_prompt = {
-                "role": "system",
-                "content": (
-                    "You are a Python plotting assistant.\n"
-                    "Return ONLY a single JSON object with these fields: description, title, series, is_fav.\n"
-                    "Example:\n"
-                    '{"description": "This chart shows temperature trends.", "title": "Temperature Over Time", "series": [\n'
-                    '  {"label": "New York", "x": [1,2,3], "y": [70,72,68]},\n'
-                    '  {"label": "Chicago", "x": [1,2,3], "y": [65,67,66]}\n'
-                    '], "is_fav": false}\n'
-                    "For multiple datasets (e.g., comparing cities or variables), add multiple objects to the 'series' list, each with its own label, x, and y.\n"
-                    "All x and y lists must be the same length and non-empty for each series.\n"
-                    "Do NOT return markdown or any text outside the JSON.\n"
-                    "The top-level object MUST include is_fav (boolean)."
-                )
-            }
-            chat_history = [system_prompt] + req.chat_history
-        else:
-            chat_history = req.chat_history
+        # Unified handling of prompt & chat history
+        chat_history = data.get("chat_history", [])
+        if not isinstance(chat_history, list):
+            chat_history = []
 
-        max_retries = 5
-        for attempt in range(max_retries):
-            raw_result = await asyncio.to_thread(call_openai, chat_history)
-            print(f"OpenAI raw call result (attempt {attempt+1}): {raw_result}")
+        # Include one-off prompt if provided
+        prompt = data.get("prompt", "").strip()
+        if prompt:
+            chat_history.append({ "role": "user", "content": prompt })
 
-            def normalize_series(series):
-                normalized = []
-                for i, s in enumerate(series):
-                    label = s.get("label") or f"Series {i+1}"
-                    x = s.get("x", [])
-                    y = s.get("y", [])
-                    if not isinstance(x, list):
-                        x = list(x) if hasattr(x, "__iter__") else []
-                    if not isinstance(y, list):
-                        y = list(y) if hasattr(y, "__iter__") else []
-                    min_len = min(len(x), len(y))
-                    x = x[:min_len]
-                    y = y[:min_len]
-                    if min_len > 0:
-                        normalized.append({"label": label, "x": x, "y": y})
+        if not chat_history:
+            raise HTTPException(400, "Missing prompt")
+
+        # Call the AI service with full chat history
+        raw_result = await analyze_prompt(chat_history)
+        print(f"OpenAI raw call result: {raw_result}")
+        # Extract response fields with fallbacks
+        description = raw_result.get("description", f"Analysis of data related to {prompt}")
+        title = raw_result.get("title", f"Data for {prompt}")
+        series = raw_result.get("series", [])
+        is_fav = raw_result.get("is_fav", False)
+        response_type = raw_result.get("responseType", "General")
+        # Normalize series data
+        def normalize_series(series):
+            normalized = []
+            if not isinstance(series, list):
                 return normalized
-
-            try:
-                parsed = raw_result
-                if isinstance(raw_result, str):
-                    import json
-                    if raw_result.startswith("```json"):
-                        raw_result = raw_result.strip("`").strip()
-                        if raw_result.startswith("json"):
-                            raw_result = raw_result[4:].strip()
-                    parsed = json.loads(raw_result)
-                description = parsed.get("description", "")
-                title = parsed.get("title", "")
-                series = parsed.get("series", [])
-                is_fav = parsed.get("is_fav", False)
-                if not isinstance(series, list):
-                    series = []
-                series = normalize_series(series)
-                graph_obj = {"title": title, "series": series, "is_fav": is_fav}
-                if is_valid_graph(graph_obj):
-                    result = {
-                        "description": description,
-                        "title": title,
-                        "series": series,
-                        "is_fav": is_fav
-                    }
-                    return result
-                else:
-                    print(f"Invalid graph on attempt {attempt+1}: {graph_obj}")
-            except Exception as e:
-                print(f"Error parsing OpenAI result on attempt {attempt+1}: {e}")
-                continue
-        raise HTTPException(status_code=422, detail="Could not generate a valid graph after several attempts.")
+            for i, s in enumerate(series):
+                if not isinstance(s, dict):
+                    continue
+                label = s.get("label") or f"Series {i+1}"
+                x = s.get("x", [])
+                y = s.get("y", [])
+                if not isinstance(x, list):
+                    x = list(x) if hasattr(x, "__iter__") else []
+                if not isinstance(y, list):
+                    y = list(y) if hasattr(y, "__iter__") else []
+                min_len = min(len(x), len(y))
+                x = x[:min_len]
+                y = y[:min_len]
+                if min_len > 0:
+                    normalized.append({"label": label, "x": x, "y": y})
+            return normalized
+        normalized_series = normalize_series(series)
+        result = {
+            "description": description,
+            "title": title,
+            "series": normalized_series,
+            "is_fav": is_fav,
+            "responseType": response_type
+        }
+        return result
     except Exception as e:
         print(f"Error in analyze endpoint: {e}")
-        raise HTTPException(status_code=422, detail=str(e))
+        return {
+            "description": f"Sorry, I encountered an error processing your request: {str(e)}",
+            "title": "Error",
+            "series": [{
+                "label": "Error",
+                "x": [1, 2, 3],
+                "y": [0, 0, 0]
+            }],
+            "is_fav": False,
+            "responseType": "Analysis"
+        }
 
 
 GRAPH_STORE_PATH = os.path.join(os.path.dirname(__file__), "graphs.json")
@@ -451,6 +437,14 @@ class MainWindow(QMainWindow):
 
     def show_generate(self):
         self.pages.setCurrentWidget(self.chat_scroll); self._highlight_nav(self.generate_btn)
+        # Reset chat history every time the user enters the Generate page
+        self.chat_history = [{
+            "role": "system",
+            "content": (
+                "You are a Python plotting assistant…\n"
+                "Return ONE JSON with fields: description, title, series[]."
+            )
+        }]
         QTimer.singleShot(50, lambda: self.chat_scroll.verticalScrollBar().setValue(
             self.chat_scroll.verticalScrollBar().maximum()))
 
@@ -529,12 +523,24 @@ class MainWindow(QMainWindow):
                 is_date = False
             except ValueError:
                 try:
-                    x_dates = [datetime.fromisoformat(d) for d in x_raw]
+                    # Try parsing both ISO format and MM/DD/YYYY format
+                    x_dates = []
+                    for d in x_raw:
+                        try:
+                            if "/" in d:  # MM/DD/YYYY format
+                                x_dates.append(datetime.strptime(d, "%m/%d/%Y %H:%M"))
+                            else:  # ISO format
+                                x_dates.append(datetime.fromisoformat(d.replace("Z", "+00:00")))
+                        except ValueError:
+                            # If parsing fails, just use the string as is
+                            x_dates.append(d)
+                    
                     import matplotlib.dates as mdates
                     x_arr = mdates.date2num(x_dates)
                     x_labels = x_dates
                     is_date = True
-                except Exception:
+                except Exception as e:
+                    print(f"Error parsing dates: {str(e)}")
                     x_labels = x_raw
                     x_arr = np.arange(len(x_labels), dtype=float)
                     is_date = False
@@ -578,12 +584,24 @@ class MainWindow(QMainWindow):
                     is_date = False
                 except ValueError:
                     try:
-                        x_dates = [datetime.fromisoformat(d) for d in x_raw]
+                        # Try parsing both ISO format and MM/DD/YYYY format
+                        x_dates = []
+                        for d in x_raw:
+                            try:
+                                if "/" in d:  # MM/DD/YYYY format
+                                    x_dates.append(datetime.strptime(d, "%m/%d/%Y %H:%M"))
+                                else:  # ISO format
+                                    x_dates.append(datetime.fromisoformat(d.replace("Z", "+00:00")))
+                            except ValueError:
+                                # If parsing fails, just use the string as is
+                                x_dates.append(d)
+                        
                         import matplotlib.dates as mdates
                         x_arr = mdates.date2num(x_dates)
                         x_labels = x_dates
                         is_date = True
-                    except Exception:
+                    except Exception as e:
+                        print(f"Error parsing dates: {str(e)}")
                         x_labels = x_raw
                         x_arr = np.arange(len(x_labels), dtype=float)
                         is_date = False
@@ -606,7 +624,18 @@ class MainWindow(QMainWindow):
                     first_x = s["x"][0] if s["x"] else None
                     if isinstance(first_x, str):
                         try:
-                            x_dates = [datetime.fromisoformat(d) for d in s["x"]]
+                            # Try parsing both ISO format and MM/DD/YYYY format
+                            x_dates = []
+                            for d in s["x"]:
+                                try:
+                                    if "/" in d:  # MM/DD/YYYY format
+                                        x_dates.append(datetime.strptime(d, "%m/%d/%Y %H:%M"))
+                                    else:  # ISO format
+                                        x_dates.append(datetime.fromisoformat(d.replace("Z", "+00:00")))
+                                except ValueError:
+                                    # If parsing fails, just use the string as is
+                                    x_dates.append(d)
+                            
                             import matplotlib.dates as mdates
                             x_arr = mdates.date2num(x_dates)
                             x_labels = x_dates
@@ -741,7 +770,18 @@ class MainWindow(QMainWindow):
                 first_x = s["x"][0] if s["x"] else None
                 if isinstance(first_x, str):
                     try:
-                        x_dates = [datetime.fromisoformat(d) for d in s["x"]]
+                        # Try parsing both ISO format and MM/DD/YYYY format
+                        x_dates = []
+                        for d in s["x"]:
+                            try:
+                                if "/" in d:  # MM/DD/YYYY format
+                                    x_dates.append(datetime.strptime(d, "%m/%d/%Y %H:%M"))
+                                else:  # ISO format
+                                    x_dates.append(datetime.fromisoformat(d.replace("Z", "+00:00")))
+                            except ValueError:
+                                # If parsing fails, just use the string as is
+                                x_dates.append(d)
+                        
                         import matplotlib.dates as mdates
                         x_arr = mdates.date2num(x_dates)
                         x_labels = x_dates
@@ -773,7 +813,18 @@ class MainWindow(QMainWindow):
                     first_x = s["x"][0] if s["x"] else None
                     if isinstance(first_x, str):
                         try:
-                            x_dates = [datetime.fromisoformat(d) for d in s["x"]]
+                            # Try parsing both ISO format and MM/DD/YYYY format
+                            x_dates = []
+                            for d in s["x"]:
+                                try:
+                                    if "/" in d:  # MM/DD/YYYY format
+                                        x_dates.append(datetime.strptime(d, "%m/%d/%Y %H:%M"))
+                                    else:  # ISO format
+                                        x_dates.append(datetime.fromisoformat(d.replace("Z", "+00:00")))
+                                except ValueError:
+                                    # If parsing fails, just use the string as is
+                                    x_dates.append(d)
+                        
                             import matplotlib.dates as mdates
                             x_arr = mdates.date2num(x_dates)
                             x_labels = x_dates
@@ -825,3 +876,22 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+@api.middleware("http")
+async def handle_client_cancellation(request: Request, call_next):
+    """
+    Middleware to handle client disconnections and cancellations.
+    This helps manage the stop button functionality.
+    """
+    try:
+        # Track if the request has been cancelled before processing
+        request.state.cancelled = False
+        return await call_next(request)
+    except Exception as e:
+        if isinstance(e, asyncio.CancelledError):
+            print("Request was cancelled due to client disconnection")
+            return JSONResponse(
+                status_code=499,
+                content={"detail": "Client disconnected"}
+            )
+        raise

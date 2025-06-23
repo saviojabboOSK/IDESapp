@@ -7,6 +7,8 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   let chatHistory = [];
+  // Add controller for aborting fetch requests
+  let controller = null;
 
   // --- DOMContentLoaded: App Bootstrapping ---
   // Sets up navigation, loads graphs, and initializes UI when the page loads.
@@ -14,7 +16,15 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------- NAVIGATION ---------- */
   const pages = document.querySelectorAll(".page");
   const navBtns = document.querySelectorAll(".nav-btn");
+  let currentPage = "home";           // track for reset logic
   function show(pageId) {
+    if (pageId === "generate" && currentPage !== "generate") {
+      // --- fresh session every visit to Generate ---
+      chatHistory = [];
+      const chatArea = document.getElementById("chat-area");
+      if (chatArea) chatArea.innerHTML = "";
+    }
+    currentPage = pageId;
     pages.forEach((p) => p.classList.toggle("hidden", p.id !== pageId));
     navBtns.forEach((b) =>
       b.classList.toggle("active", b.dataset.page === pageId)
@@ -133,9 +143,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------- CHAT (unchanged) ---------- */
   const promptInput = document.getElementById("global-prompt");
-  const sendBtn = document.getElementById("global-send");
-  const chatArea = document.getElementById("chat-area");
+  const sendBtn = document.getElementById("global-send");  const chatArea = document.getElementById("chat-area");
   const loadingBar = document.getElementById("loading-bar");
+  // Use the existing chatHistory from the top of the file
+  
   async function sendPrompt() {
     const txt = promptInput.value.trim();
     if (!txt) return;
@@ -144,18 +155,35 @@ document.addEventListener("DOMContentLoaded", () => {
     promptInput.value = "";
     loadingBar.style.display = "flex";
     try {
-      const payload = { prompt: txt };
+      // Append user message
+      chatHistory.push({ role: "user", content: txt });
+      // Send full chat history
+      const payload = { chat_history: chatHistory };
       console.log("Sending /api/analyze payload:", payload);
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 422) {
+          const err = await res.json();
+          throw new Error(`Processing error: ${err.detail||"Could not process request"}`);
+        }
+        throw new Error(`API error: ${res.status}`);
+      }
       const data = await res.json();
       console.log("Received /api/analyze response data:", data);
-      appendBubble(data.description ?? data.answer ?? "[no response]", "ai");
-      if (data.series && data.series.length > 0) {
+      const responseType = data.responseType || "Analysis";
+      chatHistory.push({ role: "assistant", content: data.description ?? data.answer ?? "[no response]" });
+      appendBubble("[" + responseType + "] " + (data.description !== undefined ? data.description : (data.answer !== undefined ? data.answer : "[no response]")), "ai");
+      if (data.series && data.series.length) {
+        renderInlineChart(data.series);
+
+        /* ----------- NEW: embed raw graph JSON into chatHistory ----------- */
+        chatHistory.push({ role: "assistant", content: "[[GRAPH_DATA]] " + JSON.stringify(data.series) });
+
+        /* Save to persistent store (unchanged) */
         const saveRes = await fetch("/api/add_graph", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -165,22 +193,25 @@ document.addEventListener("DOMContentLoaded", () => {
             is_fav: false,
           }),
         });
-        if (!saveRes.ok) throw new Error(`Save error: ${saveRes.status}`);
-        await loadGraphs();
+        if (saveRes.ok) loadGraphs();
       }
     } catch (err) {
-      appendBubble(`Error: ${err.message}`, "ai");
+      if (err.name === 'AbortError') {
+        appendBubble("Request was stopped.", "ai");
+      } else {
+        appendBubble("Error: " + err.message, "ai");
+      }
     } finally {
+      controller = null;
       loadingBar.style.display = "none";
     }
   }
   sendBtn.addEventListener("click", sendPrompt);
-  promptInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendPrompt();
-  });
+  promptInput.addEventListener("keydown", e => { if (e.key === "Enter") sendPrompt(); });
+
   function appendBubble(text, who) {
     const div = document.createElement("div");
-    div.className = `chat-bubble ${who}`;
+    div.className = "chat-bubble " + who;
     div.textContent = text;
     chatArea.append(div);
     chatArea.scrollTop = chatArea.scrollHeight;
@@ -197,12 +228,14 @@ document.addEventListener("DOMContentLoaded", () => {
     chatArea.appendChild(container);
 
     const labels = series[0].x;
-    const datasets = series.map((s, idx) => ({
-      label: s.label || `Series ${idx + 1}`,
-      data: s.y,
-      tension: 0.3,
-      fill: false,
-    }));
+    const datasets = series.map(function(s, idx) {
+      return {
+        label: s.label || "Series " + (idx + 1),
+        data: s.y,
+        tension: 0.3,
+        fill: false
+      };
+    });
 
     new Chart(canvas.getContext("2d"), {
       type: "line",
@@ -224,7 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chatArea.scrollTop = chatArea.scrollHeight;
   }
-
   async function sendPrompt() {
     const txt = promptInput.value.trim();
     if (!txt) return;
@@ -232,6 +264,15 @@ document.addEventListener("DOMContentLoaded", () => {
     appendBubble(txt, "user");
     promptInput.value = "";
     loadingBar.style.display = "flex";
+    
+    // Cancel any ongoing request
+    if (controller) {
+      controller.abort();
+    }
+    
+    // Create a new AbortController for this request
+    controller = new AbortController();
+    
     try {
       // Append user message to chat history
       chatHistory.push({ role: "user", content: txt });
@@ -240,21 +281,33 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
+        signal: controller.signal      });
+      if (!res.ok) {
+        // If it's a 422 error, try to get the error details
+        if (res.status === 422) {
+          const errorData = await res.json();
+          throw new Error(`Processing error: ${errorData.detail || "Could not process request"}`);
+        }
+        throw new Error(`API error: ${res.status}`);
+      }
       const data = await res.json();
       console.log("Received /api/analyze response data:", data);
+      // Get the response type for display
+      const responseType = data.responseType || "Analysis";
+      console.log(`Response type: ${responseType}`);
       // Append assistant message to chat history
-      chatHistory.push({ role: "assistant", content: data.description ?? data.answer ?? "[no response]" });
-      // Append textual description as chat bubble
-      appendBubble(data.description ?? data.answer ?? "[no response]", "ai");
+      chatHistory.push({ role: "assistant", content: (data.description !== undefined ? data.description : (data.answer !== undefined ? data.answer : "[no response]")) });
+      // Append textual description as chat bubble with response type indicator
+      appendBubble("[" + responseType + "] " + (data.description !== undefined ? data.description : (data.answer !== undefined ? data.answer : "[no response]")), "ai");
       if (data.series && data.series.length > 0) {
         // Normalize series data for Chart.js
-        const normalizedSeries = data.series.map((s, idx) => ({
-          label: s.label || `Series ${idx + 1}`,
-          x: s.x,
-          y: s.y,
-        }));
+        const normalizedSeries = data.series.map(function(s, idx) {
+          return {
+            label: s.label || "Series " + (idx + 1),
+            x: s.x,
+            y: s.y
+          };
+        });
         // Render graph inline below the text bubble
         renderInlineChart(normalizedSeries);
         // Save graph to backend
@@ -267,15 +320,29 @@ document.addEventListener("DOMContentLoaded", () => {
             is_fav: false,
           }),
         });
-        if (!saveRes.ok) throw new Error(`Save error: ${saveRes.status}`);
+        if (!saveRes.ok) throw new Error("Save error: " + saveRes.status);
         await loadGraphs();
       }
     } catch (err) {
-      appendBubble(`Error: ${err.message}`, "ai");
+      if (err.name === 'AbortError') {
+        appendBubble("Request was stopped.", "ai");
+      } else {
+        appendBubble("Error: " + err.message, "ai");
+      }
     } finally {
+      controller = null;  // Reset controller
       loadingBar.style.display = "none";
     }
   }
+  
+  // Initialize stop button
+  const stopButton = document.getElementById("stop-ai");
+  stopButton.addEventListener("click", () => {
+    if (controller) {
+      controller.abort();
+      console.log("AI request aborted by user");
+    }
+  });
 
   /* ---------- BOOT ---------- */
   loadGraphs();

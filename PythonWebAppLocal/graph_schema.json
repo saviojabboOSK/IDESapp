@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Graph Data Schema",
+  "description": "Strict schema for graph data structure used in the IDES application",
+  "type": "object",
+  "required": ["title", "description", "series", "responseType"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Descriptive title for the graph",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string", 
+      "description": "Brief explanation of what the graph shows",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "responseType": {
+      "type": "string",
+      "enum": ["Graph", "Analysis", "Forecast", "Floorplan", "General"],
+      "description": "Type of response this data represents"
+    },
+    "chart_type": {
+      "type": "string",
+      "enum": ["line", "bar", "scatter", "area"],
+      "description": "Suggested chart type for visualization",
+      "default": "line"
+    },
+    "is_fav": {
+      "type": "boolean",
+      "description": "Whether this graph is marked as favorite",
+      "default": false
+    },
+    "series": {
+      "type": "array",
+      "description": "Array of data series for the graph",
+      "items": {
+        "type": "object",
+        "required": ["label", "x", "y"],
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Label for this data series",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "x": {
+            "type": "array",
+            "description": "X-axis values (timestamps or numeric)",
+            "items": {
+              "oneOf": [
+                {"type": "string"},
+                {"type": "number"}
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 1000
+          },
+          "y": {
+            "type": "array", 
+            "description": "Y-axis values (numeric data points)",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 1,
+            "maxItems": 1000
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 10
+    }
+  },
+  "additionalProperties": false
+}

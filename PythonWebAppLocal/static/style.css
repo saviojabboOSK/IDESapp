@@ -152,6 +152,36 @@ body {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+.loading-bar {
+  position:fixed; bottom:60px; left:0; right:0;
+  background:rgba(0,0,0,0.7);
+  padding:8px 16px;
+  display:flex; align-items:center; gap:8px;
+}
+
+.loading-spinner {
+  width:20px; height:20px;
+  border:3px solid #fff;
+  border-top-color:transparent;
+  border-radius:50%;
+  animation: spin 1s linear infinite;
+}
+
+.stop-button {
+  margin-left: auto;
+  padding: 6px 12px;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.stop-button:hover {
+  background-color: #b71c1c;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
