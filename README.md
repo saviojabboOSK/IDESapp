@@ -106,5 +106,5 @@ Under the OshKosh Restricted License.
 
 ## Contact
 
-**Project Lead:** Alice Smith – [alice.smith@example.com](mailto:alice.smith@example.com)
-**GitHub:** [https://github.com/your-org/IDES](https://github.com/your-org/IDES)
+**Project Lead:** Savio Jabbo, ADIC DT Intern – [sjabbo@oshkoshcorp.com](mailto:sjabbo@oshkoshcorp.com)
+**GitHub:** [https://github.com/saviojabboOSK/IDESapp](https://github.com/saviojabboOSK/IDESapp)
