@@ -34,57 +34,37 @@ MODEL_NAME = "gemma3:1b"
 
 # --- Core Data Processing Functions ---
 
-def extract_query_parameters(prompt: str, chat_history: List[Dict[str, str]] = None) -> Dict[str, Any]:
+def extract_query_parameters(prompt: str) -> Dict[str, Any]:
     """
-    Extract basic query parameters from user prompt and chat history using pattern matching.
+    Extract basic query parameters from user prompt using pattern matching.
     
     Args:
         prompt: The user's input prompt
-        chat_history: Previous conversation context to extract metrics from
         
     Returns:
-        Dictionary with extracted parameters (metrics, time_window, etc.)
+        Dictionary with extracted parameters (metrics, location, time_window, etc.)
     """
     prompt_lower = prompt.lower()
     
-    # Extract metrics from current prompt
-    current_metrics = []
+    # Extract metrics
+    metrics = []
     if "temperature" in prompt_lower or "temp" in prompt_lower:
-        current_metrics.append("temperature")
+        metrics.append("temperature")
     if "humidity" in prompt_lower:
-        current_metrics.append("humidity")
+        metrics.append("humidity")
     if "rainfall" in prompt_lower or "rain" in prompt_lower:
-        current_metrics.append("rainfall")
+        metrics.append("rainfall")
     if "pressure" in prompt_lower:
-        current_metrics.append("pressure")
+        metrics.append("pressure")
     
-    # Extract metrics from chat history if current prompt doesn't specify any
-    historical_metrics = []
-    if chat_history and not current_metrics:
-        print(f"No current metrics found, checking chat history ({len(chat_history)} messages)")
-        # Look through recent messages for previously mentioned metrics
-        for i, msg in enumerate(reversed(chat_history[-10:])):  # Check last 10 messages
-            if msg.get("role") == "user":
-                content = msg.get("content", "").lower()
-                print(f"  Checking message {i}: '{content[:50]}...'")
-                if "temperature" in content or "temp" in content:
-                    historical_metrics.append("temperature")
-                if "humidity" in content:
-                    historical_metrics.append("humidity")
-                if "rainfall" in content or "rain" in content:
-                    historical_metrics.append("rainfall")
-                if "pressure" in content:
-                    historical_metrics.append("pressure")
-        
-        # Remove duplicates while preserving order
-        seen = set()
-        historical_metrics = [x for x in historical_metrics if not (x in seen or seen.add(x))]
-        print(f"  Found historical metrics: {historical_metrics}")
-    else:
-        print(f"Found current metrics: {current_metrics} or no chat history available")
+    # Extract locations
+    locations = ["chicago", "new york", "los angeles", "miami", "san diego", "california"]
+    found_locations = []
+    for loc in locations:
+        if loc in prompt_lower:
+            found_locations.append(loc)
     
-    # Use current metrics if available, otherwise fall back to historical context
-    metrics = current_metrics if current_metrics else historical_metrics
+    location = found_locations if len(found_locations) > 1 else (found_locations[0] if found_locations else None)
     
     # Extract time window
     time_window = "24h"  # default
@@ -117,8 +97,8 @@ def extract_query_parameters(prompt: str, chat_history: List[Dict[str, str]] = N
     
     return {
         "metrics": metrics,
-        "time_window": time_window,
-        "context_source": "current" if current_metrics else "historical"
+        "location": location,
+        "time_window": time_window
     }
 
 async def fetch_data_from_influxdb(query_params: Dict[str, Any]) -> Dict[str, Any]:
@@ -126,15 +106,16 @@ async def fetch_data_from_influxdb(query_params: Dict[str, Any]) -> Dict[str, An
     Fetch data based on extracted query parameters.
     
     Args:
-        query_params: Dictionary with metrics, time_window, etc.
+        query_params: Dictionary with metrics, location, time_window, etc.
         
     Returns:
         Dictionary with series data formatted for analysis
     """
     metrics = query_params.get("metrics", [])
+    location = query_params.get("location")
     time_window = query_params.get("time_window", "24h")
     
-    print(f"Fetching data for metrics: {metrics}, time_window: {time_window}")
+    print(f"Fetching data for metrics: {metrics}, location: {location}, time_window: {time_window}")
     
     # Try real InfluxDB first
     if influx_fetch:
@@ -150,16 +131,17 @@ async def fetch_data_from_influxdb(query_params: Dict[str, Any]) -> Dict[str, An
         metrics = ["temperature", "humidity", "rainfall"]
         print(f"No metrics provided, using defaults: {metrics}")
     
-    mock_data = await generate_mock_data(metrics, time_window)
+    mock_data = await generate_mock_data(metrics, location, time_window)
     print(f"Mock data generated with {len(mock_data.get('series', []))} series")
     return mock_data
 
-async def generate_mock_data(metrics: List[str], time_window: str) -> Dict[str, Any]:
+async def generate_mock_data(metrics: List[str], location: Union[str, List[str]], time_window: str) -> Dict[str, Any]:
     """
     Generate realistic mock data based on extracted parameters.
     
     Args:
         metrics: List of sensor metrics to generate
+        location: Location for context-appropriate data
         time_window: Time period for data generation
         
     Returns:
@@ -182,13 +164,24 @@ async def generate_mock_data(metrics: List[str], time_window: str) -> Dict[str, 
             metrics = ["temperature"]
             print("No metrics provided, defaulting to temperature")
         
-        # Metric baselines (removed location-specific logic)
-        metric_baselines = {
-            "temperature": {"baseline": 72, "variance": 8},
-            "humidity": {"baseline": 65, "variance": 15},
-            "rainfall": {"baseline": 0.1, "variance": 0.2},
-            "pressure": {"baseline": 1013, "variance": 20}
+        # Location-based baselines
+        location_baselines = {
+            "chicago": {"temperature": 65, "humidity": 70, "rainfall": 0.1},
+            "new york": {"temperature": 68, "humidity": 65, "rainfall": 0.12},
+            "los angeles": {"temperature": 75, "humidity": 55, "rainfall": 0.02},
+            "miami": {"temperature": 80, "humidity": 85, "rainfall": 0.2},
+            "san diego": {"temperature": 72, "humidity": 60, "rainfall": 0.05},
+            "california": {"temperature": 75, "humidity": 58, "rainfall": 0.03}
         }
+        
+        # Handle multiple locations or single location
+        locations_to_process = []
+        if isinstance(location, list):
+            locations_to_process = location
+        elif location:
+            locations_to_process = [location]
+        else:
+            locations_to_process = ["default"]
         
         # Generate data
         series = []
@@ -214,42 +207,61 @@ async def generate_mock_data(metrics: List[str], time_window: str) -> Dict[str, 
         
         print(f"Using {time_unit} labels with step size {step_size}")
         
-        # Generate data for each metric
-        for metric in metrics:
-            baseline_data = metric_baselines.get(metric, {"baseline": 50, "variance": 10})
-            baseline = baseline_data["baseline"]
-            variance = baseline_data["variance"]
+        # Generate data for each location and metric combination
+        for loc in locations_to_process:
+            baselines = location_baselines.get(loc, {"temperature": 70, "humidity": 65, "rainfall": 0.1})
             
-            # Generate time series points
-            points = []
-            data_points = min(hours // step_size, GRAPH_MAX)
-            print(f"Generating {data_points} data points for {metric}")
-            
-            for i in range(data_points):
-                time_label = label_func(i * step_size)
-                actual_time = base_time + timedelta(hours=i * step_size)
-                
-                # Add realistic variation
-                if metric == "temperature":
-                    hour_of_day = actual_time.hour
-                    daily_cycle = 5 * math.sin((hour_of_day - 6) * math.pi / 12)
-                    value = baseline + daily_cycle + random.gauss(0, variance/3)
-                elif metric == "rainfall":
-                    if random.random() < 0.8:
-                        value = 0
-                    else:
-                        value = random.expovariate(1/baseline) if baseline > 0 else 0
+            for metric in metrics:
+                if metric not in baselines:
+                    baseline = 50
+                    variance = 10
                 else:
-                    value = baseline + random.gauss(0, variance)
+                    baseline = baselines[metric]
+                    if metric == "temperature":
+                        variance = 8
+                    elif metric == "humidity":
+                        variance = 15
+                    elif metric == "rainfall":
+                        variance = baseline * 2
+                    else:
+                        variance = baseline * 0.2
                 
-                points.append([time_label, round(value, 2)])
-            
-            series.append({
-                "name": metric.title(),
-                "data": points
-            })
-            
-            print(f"Generated {len(points)} points for {metric}")
+                # Generate time series points
+                points = []
+                data_points = min(hours // step_size, GRAPH_MAX)
+                print(f"Generating {data_points} data points for {metric} in {loc}")
+                
+                for i in range(data_points):
+                    time_label = label_func(i * step_size)
+                    actual_time = base_time + timedelta(hours=i * step_size)
+                    
+                    # Add realistic variation
+                    if metric == "temperature":
+                        hour_of_day = actual_time.hour
+                        daily_cycle = 5 * math.sin((hour_of_day - 6) * math.pi / 12)
+                        value = baseline + daily_cycle + random.gauss(0, variance/3)
+                    elif metric == "rainfall":
+                        if random.random() < 0.8:
+                            value = 0
+                        else:
+                            value = random.expovariate(1/baseline) if baseline > 0 else 0
+                    else:
+                        value = baseline + random.gauss(0, variance)
+                    
+                    points.append([time_label, round(value, 2)])
+                
+                # Create descriptive name
+                if len(locations_to_process) > 1:
+                    series_name = f"{metric.title()} ({loc.title()})"
+                else:
+                    series_name = metric.title()
+                
+                series.append({
+                    "name": series_name,
+                    "data": points
+                })
+                
+                print(f"Generated {len(points)} points for {metric} in {loc}")
         
         result = {
             "series": series,
@@ -283,72 +295,88 @@ def build_comprehensive_context(prompt: str, query_params: Dict[str, Any], data:
     Returns:
         Formatted context string for the LLM
     """
-    # Start with natural system instructions
-    context = """You are a friendly and helpful assistant for an IoT sensor monitoring system. You can chat naturally with users and help them with their sensor data needs.
+    # Start with system instructions
+    context = """You are an intelligent data analysis assistant for an IoT sensor monitoring system. You have access to real-time sensor data and can provide various types of responses based on user needs.
 
-IMPORTANT: Use the conversation history provided below to maintain context and continuity. Remember what the user has told you and build upon previous exchanges.
+CAPABILITIES:
+1. Data Analysis: Analyze trends, patterns, and insights from sensor data
+2. Graph Generation: Create visual representations of data when appropriate
+3. Forecasting: Predict future trends based on historical data
+4. General Q&A: Answer questions about the system, data, or provide explanations
 
-When users greet you with "Hello", "Hi", or similar, just respond warmly and naturally - NO prefixes, NO formal language.
+RESPONSE FORMATS:
+- For visualization requests: Provide both textual analysis AND graph data in JSON format
+- For analysis requests: Provide detailed textual insights
+- For forecasting: Provide predictions with confidence levels
+- For general questions: Provide clear, helpful answers
 
-You can:
-- Have normal conversations and answer general questions
-- Create graphs and visualizations when users want to see data
-- Analyze sensor data and provide insights
-- Explain trends and patterns in the data
-
-Be conversational and natural. Don't add prefixes like "[General]" or "Okay, let's begin." Just respond naturally to what the user says.
-
-For simple greetings like "Hello!" just say something like "Hello! What would you like me to help you with?" - keep it casual and friendly.
-
-USER'S CURRENT REQUEST: {prompt}
-""".format(prompt=prompt)
+AVAILABLE DATA CONTEXT:
+"""
     
-    # Add data context only if relevant
-    if query_params.get("metrics") or data.get("series"):
-        context += "\nAVAILABLE SENSOR DATA:\n"
-        
-        if query_params.get("metrics"):
-            metrics_source = query_params.get("context_source", "current")
-            context += f"Metrics: {', '.join(query_params['metrics'])} (from {metrics_source} context)\n"
-        
-        if query_params.get("time_window"):
-            context += f"Time Period: {query_params['time_window']}\n"
-        
-        if data.get("series"):
-            context += "Data Summary:\n"
-            for series in data["series"]:
-                values = [pt[1] for pt in series.get("data", [])]
-                if values:
-                    avg_val = sum(values) / len(values)
-                    min_val = min(values)
-                    max_val = max(values)
-                    latest_val = values[-1]
-                    context += f"- {series.get('name', 'Unknown')}: avg={avg_val:.1f}, min={min_val:.1f}, max={max_val:.1f}, current={latest_val:.1f}\n"
+    # Add current query information
+    context += f"\nCURRENT USER REQUEST: {prompt}\n"
     
-    # Add conversation context if available
+    # Add extracted parameters
+    if query_params.get("metrics"):
+        context += f"Requested Metrics: {', '.join(query_params['metrics'])}\n"
+    if query_params.get("location"):
+        if isinstance(query_params["location"], list):
+            context += f"Locations: {', '.join(query_params['location'])}\n"
+        else:
+            context += f"Location: {query_params['location']}\n"
+    if query_params.get("time_window"):
+        context += f"Time Period: {query_params['time_window']}\n"
+    
+    # Add available data summary
+    context += "\nAVAILABLE SENSOR DATA:\n"
+    if data.get("series"):
+        for series in data["series"]:
+            values = [pt[1] for pt in series.get("data", [])]
+            if values:
+                avg_val = sum(values) / len(values)
+                min_val = min(values)
+                max_val = max(values)
+                latest_val = values[-1]
+                context += f"- {series.get('name', 'Unknown')}: avg={avg_val:.1f}, min={min_val:.1f}, max={max_val:.1f}, current={latest_val:.1f} ({len(values)} data points)\n"
+    else:
+        context += "- No specific sensor data available for this request\n"
+    
+    # Add conversation history if available
     if chat_history and len(chat_history) > 1:
-        context += "\nCONVERSATION HISTORY:\n"
-        recent_messages = chat_history[-8:]  # Last 4 exchanges
+        context += "\nRECENT CONVERSATION CONTEXT:\n"
+        recent_messages = chat_history[-6:]  # Last 3 exchanges
         for msg in recent_messages[:-1]:  # Exclude current message
             role = msg.get("role", "")
             content = msg.get("content", "").strip()
-            if content and role in ["user", "assistant"] and not content.startswith("[[GRAPH_DATA]]"):
-                # Show full context for recent messages to help LLM understand
-                if role == "user":
-                    context += f"User said: {content}\n"
-                elif role == "assistant":
-                    context += f"You replied: {content}\n"
+            if content and role in ["user", "assistant"]:
+                context += f"{role.title()}: {content[:200]}...\n" if len(content) > 200 else f"{role.title()}: {content}\n"
     
-    # Add response format instructions
+    # Add response instructions
     context += """
-RESPONSE FORMAT:
-- For greetings, general questions, or casual conversation: Just respond naturally in plain text
-- For data visualization requests: Respond with JSON like this:
-  {"response_type": "graph", "title": "Chart Title", "description": "Natural description", "analysis": "Your analysis"}
-- For data analysis requests: Respond with JSON like this:
-  {"response_type": "text", "title": "Analysis", "content": "Your detailed analysis"}
+RESPONSE INSTRUCTIONS:
+1. If the user wants a graph/chart/visualization, respond with JSON in this format:
+   {
+     "response_type": "graph",
+     "title": "Descriptive title",
+     "description": "Brief explanation of what the graph shows",
+     "series": [array of graph data],
+     "analysis": "Detailed textual analysis of the data"
+   }
 
-Be natural, helpful, and conversational. No formal prefixes or rigid structure needed.
+2. If the user wants analysis, forecasting, or general information, respond with JSON in this format:
+   {
+     "response_type": "text",
+     "title": "Response title",
+     "content": "Detailed response content",
+     "insights": ["key insight 1", "key insight 2", ...]
+   }
+
+3. Always include relevant data analysis and insights
+4. Be specific and use actual numbers from the data when available
+5. Provide actionable insights when possible
+6. If asked about capabilities, explain what the system can do
+
+Your response should be helpful, accurate, and directly address the user's request using the available data.
 """
     
     return context
@@ -374,7 +402,6 @@ async def generate_unified_response(prompt: str, query_params: Dict[str, Any], d
         
         # Build comprehensive context
         context = build_comprehensive_context(prompt, query_params, data, chat_history)
-        print(f"LLM Context being sent:\n{context}")
         
         response = client.chat.completions.create(
             model=MODEL_NAME,
@@ -384,7 +411,6 @@ async def generate_unified_response(prompt: str, query_params: Dict[str, Any], d
         )
         
         raw_content = response.choices[0].message.content.strip()
-        print(f"LLM Raw response: {raw_content}")
         
         # Try to parse as JSON first
         try:
@@ -403,13 +429,12 @@ async def generate_unified_response(prompt: str, query_params: Dict[str, Any], d
                 return format_text_response(llm_response)
                 
         except json.JSONDecodeError:
-            # If not JSON, treat as plain text response (for casual conversation)
+            # If not JSON, treat as plain text response
             return {
                 "description": raw_content,
-                "title": "Chat",
+                "title": "Analysis",
                 "series": [],
-                "is_fav": False,
-                "responseType": "Chat"
+                "is_fav": False
             }
         
     except Exception as e:
@@ -430,6 +455,7 @@ def format_graph_response(llm_response: Dict[str, Any], data: Dict[str, Any], qu
     if not series_out:
         print("No series data available, generating fallback data")
         metrics = query_params.get("metrics", ["temperature"])
+        location = query_params.get("location", "chicago") 
         time_window = query_params.get("time_window", "24h")
         # Note: In a real implementation, you'd generate fallback data here
         series_out = [{
@@ -444,8 +470,7 @@ def format_graph_response(llm_response: Dict[str, Any], data: Dict[str, Any], qu
         "series": series_out,
         "is_fav": False,
         "x_axis_label": data.get("x_axis_label", "Time"),
-        "time_unit": data.get("time_unit", "hour"),
-        "responseType": "Graph"
+        "time_unit": data.get("time_unit", "hour")
     }
     
     # Save graph for UI
@@ -460,27 +485,17 @@ def format_text_response(llm_response: Dict[str, Any]) -> Dict[str, Any]:
         "title": llm_response.get("title", "Data Insights"),
         "series": [],
         "is_fav": False,
-        "insights": llm_response.get("insights", []),
-        "responseType": "Analysis"
+        "insights": llm_response.get("insights", [])
     }
 
 def generate_fallback_response(prompt: str, query_params: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
     """Generate a fallback response when LLM fails."""
     metrics = query_params.get('metrics', [])
+    location = query_params.get('location', '')
     time_window = query_params.get('time_window', '24h')
     
-    # Check for casual greetings
-    prompt_lower = prompt.lower().strip()
-    if any(greeting in prompt_lower for greeting in ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]):
-        return {
-            "description": "Hello! I'm here to help you with your sensor data. I can create graphs, analyze data trends, or just chat with you. What would you like to do?",
-            "title": "Chat",
-            "series": [],
-            "is_fav": False,
-            "responseType": "Chat"
-        }
-    
     # Determine if this looks like a graph request
+    prompt_lower = prompt.lower()
     wants_graph = any(word in prompt_lower for word in ["graph", "plot", "chart", "visualize", "show"])
     
     if wants_graph and data.get("series"):
@@ -493,7 +508,14 @@ def generate_fallback_response(prompt: str, query_params: Dict[str, Any], data: 
             series_out.append({"label": label, "x": xs, "y": ys})
         
         title = f"{', '.join(metrics).title()} over {time_window}" if metrics else "Data Visualization"
-        description = f"Here's your {', '.join(metrics)} data over the last {time_window}." if metrics else "Here's the data visualization you requested."
+        if location:
+            if isinstance(location, list):
+                location_str = " vs ".join([loc.title() for loc in location])
+            else:
+                location_str = location.title()
+            title += f" in {location_str}"
+        
+        description = f"Showing {', '.join(metrics)} data over the last {time_window}" if metrics else "Data visualization"
         
         result = {
             "description": description,
@@ -501,25 +523,32 @@ def generate_fallback_response(prompt: str, query_params: Dict[str, Any], data: 
             "series": series_out,
             "is_fav": False,
             "x_axis_label": data.get("x_axis_label", "Time"),
-            "time_unit": data.get("time_unit", "hour"),
-            "responseType": "Graph"
+            "time_unit": data.get("time_unit", "hour")
         }
         
         save_graph_to_file(result)
         return result
     else:
-        # Generate casual text response
+        # Generate text response
         if metrics:
-            response_text = f"I can see you're interested in {', '.join(metrics)} data. Would you like me to create a graph, provide analysis, or is there something specific you'd like to know?"
+            response_text = f"Looking at the {', '.join(metrics)} data"
+            if location:
+                if isinstance(location, list):
+                    location_str = " and ".join([loc.title() for loc in location])
+                else:
+                    location_str = location.title()
+                response_text += f" from {location_str}"
+            if time_window:
+                response_text += f" over the past {time_window}"
+            response_text += ". The data shows normal variations within expected ranges."
         else:
-            response_text = "I'm here to help with your sensor data! I can create visualizations, analyze trends, answer questions, or just chat. What can I do for you?"
+            response_text = "I can help you analyze sensor data, create visualizations, or answer questions about your IoT system. What would you like to know?"
         
         return {
             "description": response_text,
-            "title": "Chat",
+            "title": "Data Analysis",
             "series": [],
-            "is_fav": False,
-            "responseType": "Chat"
+            "is_fav": False
         }
 
 # --- Main Analysis Function ---
@@ -534,8 +563,6 @@ async def analyze_prompt(chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
         Appropriate response based on LLM analysis of user intent
     """
     try:
-        print(f"Analyze prompt called with chat_history: {chat_history}")
-        
         # Extract the latest user prompt from chat_history
         prompt = ""
         for msg in reversed(chat_history):
@@ -547,29 +574,9 @@ async def analyze_prompt(chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
             raise ValueError("No user prompt detected in chat history")
         
         print(f"Processing prompt: {prompt}")
-        print(f"Total chat history length: {len(chat_history)}")
-        print(f"Assistant messages in history: {len([msg for msg in chat_history if msg.get('role') == 'assistant'])}")
         
-        # Check for simple greetings ONLY if it's the start of conversation or a very simple greeting
-        prompt_lower = prompt.lower().strip()
-        is_simple_greeting = (
-            len(prompt.split()) <= 2 and  # Very short phrases only
-            prompt_lower in ["hello", "hi", "hey", "hello!", "hi!", "hey!", "good morning", "good afternoon", "good evening"] and
-            len([msg for msg in chat_history if msg.get("role") == "assistant"]) <= 1  # First or second interaction only
-        )
-        
-        if is_simple_greeting:
-            print("Detected simple greeting at start of conversation, using fallback response")
-            return {
-                "description": "Hello! What would you like me to help you with?",
-                "title": "Chat",
-                "series": [],
-                "is_fav": False,
-                "responseType": "Chat"
-            }
-        
-        # Step 1: Extract basic parameters from prompt with chat history context
-        query_params = extract_query_parameters(prompt, chat_history)
+        # Step 1: Extract basic parameters from prompt
+        query_params = extract_query_parameters(prompt)
         print(f"Extracted parameters: {query_params}")
         
         # Step 2: Fetch relevant data

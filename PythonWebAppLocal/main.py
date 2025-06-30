@@ -196,7 +196,7 @@ async def analyze(req: Request):
         title = raw_result.get("title", f"Data for {prompt}")
         series = raw_result.get("series", [])
         is_fav = raw_result.get("is_fav", False)
-        response_type = raw_result.get("responseType", "General")
+        response_type = raw_result.get("responseType", "Chat")
         # Normalize series data
         def normalize_series(series):
             normalized = []

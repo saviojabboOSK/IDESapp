@@ -1,0 +1,9 @@
+openai
+uvicorn
+fastapi
+numpy
+PySide6
+matplotlib
+qt_material
+influxdb_client
+jsonschema
