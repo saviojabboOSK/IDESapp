@@ -35,7 +35,8 @@
   
   .graph-card-front,
   .graph-card-back {
-    @apply w-full h-full backface-hidden;
+    @apply w-full h-full;
+    backface-visibility: hidden;
   }
   
   .graph-card-back {

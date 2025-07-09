@@ -1,6 +1,5 @@
 // Main React application component orchestrating the IDES 2.0 dashboard with routing, real-time WebSocket connections, and responsive layout for sensor data visualization.
 
-import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Dashboard from './pages/Dashboard'

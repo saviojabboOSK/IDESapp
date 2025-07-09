@@ -15,34 +15,33 @@ interface GraphCardProps {
 }
 
 const GraphCard: React.FC<GraphCardProps> = ({
-  id,
+  id: _id,
   title,
   chartType,
   metrics,
   timeRange,
   onRemove,
-  forecastData,
+  forecastData: _forecastData,
   accuracyMetrics
 }) => {
   const [isFlipped, setIsFlipped] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   const handleSettingsClick = () => {
     setIsFlipped(!isFlipped)
   }
 
-  // Mock chart data for demonstration
-  const mockData = {
-    labels: ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-    datasets: [
-      {
-        label: metrics[0] || 'Data',
-        data: [22.1, 22.3, 22.8, 23.1, 22.9, 22.7],
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      }
-    ]
-  }
+  // Mock chart data for demonstration (commented out for now)
+  // const mockData = {
+  //   labels: ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+  //   datasets: [
+  //     {
+  //       label: metrics[0] || 'Data',
+  //       data: [22.1, 22.3, 22.8, 23.1, 22.9, 22.7],
+  //       borderColor: 'rgb(59, 130, 246)',
+  //       backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  //     }
+  //   ]
+  // }
 
   return (
     <div className="graph-card relative overflow-hidden">
