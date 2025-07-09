@@ -1,6 +1,6 @@
 # Makefile for IDES 2.0 - Indoor Digital Environment System with cross-platform development, testing, and deployment automation for sensor data visualization dashboard.
 
-.PHONY: help install dev backend frontend build clean docker test lint format setup
+.PHONY: help install dev backend frontend build clean docker test lint format setup activate shell check
 
 # Default Python and Node paths
 PYTHON := python3
@@ -12,8 +12,8 @@ PNPM := pnpm
 # Virtual environment
 VENV := .venv
 VENV_BIN := $(VENV)/bin
-VENV_PYTHON := $(VENV_BIN)/python
-VENV_PIP := $(VENV_BIN)/pip
+VENV_PYTHON := $(shell pwd)/$(VENV_BIN)/python
+VENV_PIP := $(shell pwd)/$(VENV_BIN)/pip
 
 # Colors for output
 RED := \033[0;31m
@@ -39,6 +39,11 @@ install-backend: ## Install Python backend dependencies
 	$(VENV_PIP) install --upgrade pip
 	$(VENV_PIP) install -r backend/requirements.txt
 	@echo "$(GREEN)✓ Backend dependencies installed$(NC)"
+	@echo "$(YELLOW)Verifying installation...$(NC)"
+	@$(VENV_PYTHON) -c "import uvicorn; print('✓ uvicorn installed successfully')" || (echo "$(RED)✗ uvicorn installation failed$(NC)" && exit 1)
+	@$(VENV_PYTHON) -c "import fastapi; print('✓ FastAPI installed successfully')" || (echo "$(RED)✗ FastAPI installation failed$(NC)" && exit 1)
+	@echo "$(YELLOW)To activate the virtual environment, run:$(NC)"
+	@echo "$(GREEN)source $(VENV)/bin/activate$(NC)"
 
 install-frontend: ## Install Node.js frontend dependencies
 	@echo "$(YELLOW)Setting up React frontend...$(NC)"
@@ -53,9 +58,36 @@ setup: install ## Complete project setup with example configuration
 	fi
 	@mkdir -p backend/data
 	@echo "$(GREEN)✓ Project setup complete$(NC)"
+	@echo "$(YELLOW)To activate the Python virtual environment, run:$(NC)"
+	@echo "$(GREEN)source $(VENV)/bin/activate$(NC)"
+
+activate: ## Show command to activate virtual environment
+	@if [ -d "$(VENV)" ]; then \
+		echo "$(GREEN)To activate the virtual environment, run:$(NC)"; \
+		echo "$(GREEN)source $(VENV)/bin/activate$(NC)"; \
+	else \
+		echo "$(RED)Virtual environment not found. Run 'make install-backend' first.$(NC)"; \
+	fi
+
+shell: ## Launch shell with activated virtual environment
+	@if [ -d "$(VENV)" ]; then \
+		echo "$(GREEN)Launching shell with activated virtual environment...$(NC)"; \
+		cd backend && exec $(SHELL) -c "source ../$(VENV)/bin/activate && exec $(SHELL)"; \
+	else \
+		echo "$(RED)Virtual environment not found. Run 'make install-backend' first.$(NC)"; \
+		exit 1; \
+	fi
 
 dev: ## Start development servers (backend + frontend)
 	@echo "$(YELLOW)Starting IDES 2.0 development environment...$(NC)"
+	@if [ ! -d "$(VENV)" ]; then \
+		echo "$(RED)Backend virtual environment not found. Run 'make install' first.$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -d "frontend/node_modules" ]; then \
+		echo "$(RED)Frontend dependencies not found. Run 'make install' first.$(NC)"; \
+		exit 1; \
+	fi
 	@echo "Backend: http://localhost:8000"
 	@echo "Frontend: http://localhost:5173"
 	@echo "$(YELLOW)Press Ctrl+C to stop all services$(NC)"
@@ -63,6 +95,10 @@ dev: ## Start development servers (backend + frontend)
 
 dev-backend: ## Start backend development server only
 	@echo "$(YELLOW)Starting FastAPI backend...$(NC)"
+	@if [ ! -d "$(VENV)" ]; then \
+		echo "$(RED)Virtual environment not found. Run 'make install-backend' first.$(NC)"; \
+		exit 1; \
+	fi
 	cd backend && $(VENV_PYTHON) -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-frontend: ## Start frontend development server only
@@ -85,6 +121,10 @@ test: ## Run all tests
 
 test-backend: ## Run backend tests
 	@echo "$(YELLOW)Running backend tests...$(NC)"
+	@if [ ! -d "$(VENV)" ]; then \
+		echo "$(RED)Virtual environment not found. Run 'make install-backend' first.$(NC)"; \
+		exit 1; \
+	fi
 	cd backend && $(VENV_PYTHON) -m pytest tests/ -v || echo "$(YELLOW)No tests found - create tests in backend/tests/$(NC)"
 
 test-frontend: ## Run frontend tests  
@@ -98,7 +138,11 @@ lint: ## Run linting for all code
 
 lint-backend: ## Run Python linting
 	@echo "$(YELLOW)Linting Python code...$(NC)"
-	cd backend && $(VENV_PYTHON) -m ruff check . || echo "$(YELLOW)Install ruff for linting: pip install ruff$(NC)"
+	@if [ ! -d "$(VENV)" ]; then \
+		echo "$(RED)Virtual environment not found. Run 'make install-backend' first.$(NC)"; \
+		exit 1; \
+	fi
+	cd backend && $(VENV_PYTHON) -m ruff check . || echo "$(YELLOW)Install ruff for linting: $(VENV_PIP) install ruff$(NC)"
 
 lint-frontend: ## Run TypeScript/React linting
 	@echo "$(YELLOW)Linting TypeScript code...$(NC)"
@@ -111,7 +155,11 @@ format: ## Format all code
 
 format-backend: ## Format Python code
 	@echo "$(YELLOW)Formatting Python code...$(NC)"
-	cd backend && $(VENV_PYTHON) -m ruff format . || echo "$(YELLOW)Install ruff for formatting: pip install ruff$(NC)"
+	@if [ ! -d "$(VENV)" ]; then \
+		echo "$(RED)Virtual environment not found. Run 'make install-backend' first.$(NC)"; \
+		exit 1; \
+	fi
+	cd backend && $(VENV_PYTHON) -m ruff format . || echo "$(YELLOW)Install ruff for formatting: $(VENV_PIP) install ruff$(NC)"
 
 format-frontend: ## Format TypeScript/React code
 	@echo "$(YELLOW)Formatting TypeScript code...$(NC)"
@@ -138,8 +186,16 @@ logs: ## Show Docker logs
 
 clean: ## Clean all build artifacts and dependencies
 	@echo "$(YELLOW)Cleaning project...$(NC)"
-	rm -rf $(VENV)
-	rm -rf frontend/node_modules
+	@if [ -d "$(VENV)" ]; then \
+		echo "$(YELLOW)Removing Python virtual environment and packages...$(NC)"; \
+		rm -rf $(VENV); \
+		echo "$(GREEN)✓ Virtual environment removed$(NC)"; \
+	fi
+	@if [ -d "frontend/node_modules" ]; then \
+		echo "$(YELLOW)Removing Node.js dependencies...$(NC)"; \
+		rm -rf frontend/node_modules; \
+		echo "$(GREEN)✓ Node modules removed$(NC)"; \
+	fi
 	rm -rf frontend/dist
 	rm -rf backend/__pycache__
 	rm -rf backend/**/__pycache__
@@ -158,6 +214,22 @@ status: ## Show service status
 	@curl -s http://localhost:8000/api/health 2>/dev/null | grep -q "healthy" && echo "$(GREEN)✓ Backend: Running$(NC)" || echo "$(RED)✗ Backend: Not running$(NC)"
 	@curl -s http://localhost:5173 2>/dev/null >/dev/null && echo "$(GREEN)✓ Frontend: Running$(NC)" || echo "$(RED)✗ Frontend: Not running$(NC)"
 	@curl -s http://localhost:8086/health 2>/dev/null | grep -q "pass" && echo "$(GREEN)✓ InfluxDB: Running$(NC)" || echo "$(RED)✗ InfluxDB: Not running$(NC)"
+
+check: ## Check dependencies installation status
+	@echo "$(YELLOW)Dependency Status$(NC)"
+	@echo "=================="
+	@if [ -d "$(VENV)" ]; then \
+		echo "$(GREEN)✓ Python virtual environment exists$(NC)"; \
+		$(VENV_PYTHON) -c "import uvicorn; print('$(GREEN)✓ uvicorn installed$(NC)')" 2>/dev/null || echo "$(RED)✗ uvicorn not installed$(NC)"; \
+		$(VENV_PYTHON) -c "import fastapi; print('$(GREEN)✓ FastAPI installed$(NC)')" 2>/dev/null || echo "$(RED)✗ FastAPI not installed$(NC)"; \
+	else \
+		echo "$(RED)✗ Python virtual environment not found$(NC)"; \
+	fi
+	@if [ -d "frontend/node_modules" ]; then \
+		echo "$(GREEN)✓ Frontend dependencies installed$(NC)"; \
+	else \
+		echo "$(RED)✗ Frontend dependencies not installed$(NC)"; \
+	fi
 
 stop: ## Stop all development servers
 	@echo "$(YELLOW)Stopping all services...$(NC)"

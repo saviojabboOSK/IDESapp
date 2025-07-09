@@ -14,7 +14,7 @@ class SettingsUpdate(BaseModel):
     """Model for settings update requests."""
     collection_interval: Optional[int] = Field(None, ge=10, le=3600, description="Collection interval in seconds (10-3600)")
     data_retention_weeks: Optional[int] = Field(None, ge=1, le=52, description="Data retention in weeks (1-52)")
-    llm_backend: Optional[str] = Field(None, regex="^(local|openai)$", description="LLM backend: local or openai")
+    llm_backend: Optional[str] = Field(None, pattern="^(local|openai)$", description="LLM backend: local or openai")
     local_llm_url: Optional[str] = Field(None, description="Local LLM service URL")
     openai_api_key: Optional[str] = Field(None, description="OpenAI API key")
     influx_url: Optional[str] = Field(None, description="InfluxDB connection URL")

@@ -14,7 +14,7 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
   const [isConnected, setIsConnected] = useState(false)
   const [lastMessage, setLastMessage] = useState(null)
   const ws = useRef<WebSocket | null>(null)
-  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null)
+  const reconnectTimeout = useRef<number | null>(null)
 
   const connect = () => {
     try {
