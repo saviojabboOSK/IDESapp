@@ -1,0 +1,1 @@
+# Models module for IDES 2.0 containing Pydantic data models, validation schemas, and type definitions for sensor data and dashboard configurations.

@@ -1,0 +1,1 @@
+# Core module for IDES 2.0 containing configuration management, connection handling, background task scheduling, and system utilities.

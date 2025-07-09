@@ -1,0 +1,117 @@
+# Docker Compose configuration for IDES 2.0 - Indoor Digital Environment System with FastAPI backend, React frontend, InfluxDB, and optional AI services for complete development and production deployment.
+
+version: '3.8'
+
+services:
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=${INFLUX_TOKEN:-demo_token}
+      - INFLUX_ORG=ides
+      - INFLUX_BUCKET=sensors
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LLM_BACKEND=local
+      - LOCAL_LLM_URL=http://ollama:11434
+      - COLLECTION_INTERVAL=30
+      - DATA_RETENTION_WEEKS=4
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend:/app
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+    networks:
+      - ides-network
+
+  # Frontend React Application  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000/ws
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - ides-network
+
+  # InfluxDB Time Series Database
+  influxdb:
+    image: influxdb:2.7-alpine
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password123
+      - DOCKER_INFLUXDB_INIT_ORG=ides
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensors
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=demo_token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    restart: unless-stopped
+    networks:
+      - ides-network
+
+  # Ollama Local LLM Service (Optional)
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_ORIGINS=*
+    restart: unless-stopped
+    networks:
+      - ides-network
+    profiles:
+      - llm
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Nginx Reverse Proxy (Production)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./frontend/dist:/usr/share/nginx/html
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - ides-network
+    profiles:
+      - prod
+
+volumes:
+  influxdb_data:
+  influxdb_config:
+  ollama_data:
+
+networks:
+  ides-network:
+    driver: bridge

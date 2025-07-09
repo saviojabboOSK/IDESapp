@@ -1,0 +1,1 @@
+# Workers module for IDES 2.0 containing background task workers for data collection, forecasting, purging, and external API integration.
