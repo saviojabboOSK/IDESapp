@@ -1,0 +1,1 @@
+# API module for IDES 2.0 containing REST endpoints, WebSocket handlers, and route definitions for sensor data, AI prompts, and system settings.

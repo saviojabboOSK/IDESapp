@@ -1,0 +1,1 @@
+# LLM module for IDES 2.0 providing abstracted interfaces for local and cloud-based language models to analyze sensor data and generate insights.
