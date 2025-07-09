@@ -58,37 +58,54 @@ Everything is standard FastAPI + React; extend or replace pieces without touchin
 
 ---
 
-## Running it yourself (laptop demo)
 
-1. **Install prerequisites**
+## Project Automation: Makefile Commands
 
-   * Python ≥ 3.10   `pip install -r backend/requirements.txt`
-   * Node + PNPM   `pnpm install --prefix frontend`
-   * InfluxDB 2.x running locally (or set the URL in `.env`)
+This project uses a Makefile to automate setup, development, testing, and deployment. Here are the main commands you can run:
 
-2. **Copy the example settings**
+| Command                | Description |
+|------------------------|-------------|
+| `make install`         | Install all backend (Python) and frontend (Node.js) dependencies. |
+| `make install-backend` | Install only backend Python dependencies in a virtual environment. |
+| `make install-frontend`| Install only frontend Node.js dependencies using pnpm. |
+| `make setup`           | Run full setup, including copying example config and creating data folders. |
+| `make activate`        | Show the command to activate the Python virtual environment. |
+| `make shell`           | Open a shell with the Python virtual environment activated. |
+| `make dev`             | Start both backend (FastAPI) and frontend (React) dev servers. |
+| `make dev-backend`     | Start only the backend dev server. |
+| `make dev-frontend`    | Start only the frontend dev server. |
+| `make backend`         | Alias for `make dev-backend`. |
+| `make frontend`        | Alias for `make dev-frontend`. |
+| `make build`           | Build the frontend for production. |
+| `make test`            | Run all backend and frontend tests. |
+| `make test-backend`    | Run backend (Python) tests. |
+| `make test-frontend`   | Run frontend (React) tests. |
+| `make lint`            | Lint all code (backend and frontend). |
+| `make lint-backend`    | Lint backend Python code. |
+| `make lint-frontend`   | Lint frontend TypeScript/React code. |
+| `make format`          | Format all code (backend and frontend). |
+| `make format-backend`  | Format backend Python code. |
+| `make format-frontend` | Format frontend TypeScript/React code. |
+| `make docker`          | Run the full stack with Docker Compose. |
+| `make docker-dev`      | Run the dev stack with Docker Compose. |
+| `make docker-prod`     | Run the production stack with Docker Compose. |
+| `make docker-llm`      | Run with local LLM service (Ollama). |
+| `make logs`            | Show Docker logs. |
+| `make clean`           | Remove all build artifacts and dependencies. |
+| `make clean-docker`    | Remove Docker containers and volumes. |
+| `make status`          | Show status of backend, frontend, and InfluxDB services. |
+| `make check`           | Check if dependencies are installed. |
+| `make stop`            | Stop all dev servers. |
+| `make restart`         | Restart all dev servers. |
+| `make install-mac`     | Install dependencies on macOS (requires Homebrew). |
+| `make install-linux`   | Install dependencies on Linux. |
+| `make install-windows` | Install dependencies on Windows (WSL or Git Bash). |
+| `make db-setup`        | Start InfluxDB with Docker and set up sample data. |
+| `make db-reset`        | Reset InfluxDB data. |
+| `make info`            | Show project info and URLs. |
+| `make requirements`    | Show system requirements. |
 
-   ```bash
-   cd backend
-   cp .env.example .env      # fill INFLUX_URL, OPENAI_API_KEY if you like
-   ```
-
-3. **Start the services**
-
-   ```bash
-   # terminal 1 – Python API + background jobs
-   uvicorn app.main:app --reload
-
-   # terminal 2 – React dev server
-   pnpm --prefix ../frontend dev
-   ```
-
-   Visit **[http://localhost:5173](http://localhost:5173)** in your browser. Data will begin to appear as soon as the first pull finishes.
-
-> **Production** – run `docker compose -f docker-compose.yml --profile prod up -d`.
-> Nginx will serve the built React site and proxy API + WebSocket traffic to Uvicorn.
-
----
+You can run any of these commands from the project root. For more details, run `make help`.
 
 ## Want to tinker?
 
