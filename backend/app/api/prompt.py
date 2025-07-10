@@ -122,15 +122,30 @@ Chart config format (if applicable):
         # If chart config is provided, create a temporary graph
         chart_data = None
         if parsed_response.get("chart_config"):
+            from app.api.graphs import save_graph_to_file
+            from app.models.graph import GraphSettings, GraphLayout
+            
             chart_config = parsed_response["chart_config"]
-            chart_data = {
-                "id": f"ai_generated_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                "title": chart_config.get("title", "AI Generated Chart"),
-                "chart_type": chart_config.get("chart_type", "line"),
-                "metrics": chart_config.get("metrics", ["temperature"]),
-                "time_range": chart_config.get("time_range", "24h"),
-                "is_ai_generated": True
-            }
+            
+            # Create a proper GraphModel instance
+            graph_model = GraphModel(
+                id=f"ai-generated-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                title=chart_config.get("title", "AI Generated Chart"),
+                chart_type=chart_config.get("chart_type", "line"),
+                metrics=chart_config.get("metrics", ["temperature"]),
+                time_range=chart_config.get("time_range", "24h"),
+                is_ai_generated=True,
+                settings=GraphSettings(
+                    color_scheme=["#3b82f6", "#ef4444", "#22c55e", "#f59e0b"],
+                    show_legend=True,
+                    show_grid=True
+                ),
+                layout=GraphLayout(x=0, y=0, width=6, height=4)
+            )
+            
+            # Save the graph to file
+            save_graph_to_file(graph_model)
+            chart_data = graph_model.dict()
         
         return {
             "response": parsed_response.get("response", "I understand your query about the sensor data."),

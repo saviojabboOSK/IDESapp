@@ -174,7 +174,2807 @@
           }
         ]
       }
+    },
+    {
+      "timestamp": "2025-07-09T15:03:55.022279",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 21.2,
+        "humidity": 77.8,
+        "pressure": 1016.13,
+        "wind_speed": 7.0,
+        "wind_direction": 139,
+        "condition": "cloudy",
+        "visibility": 19.29116787969859,
+        "uv_index": 9,
+        "air_quality": {
+          "aqi": 31,
+          "pm25": 34.20623116404863,
+          "pm10": 38.94681063145019,
+          "co": 0.9501936667554683,
+          "no2": 20.99175589924205,
+          "o3": 123.79080042963491
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 19.7,
+            "humidity": 77.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 1,
+            "temperature": 19.6,
+            "humidity": 85.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 2,
+            "temperature": 19.6,
+            "humidity": 85.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 3,
+            "temperature": 21.3,
+            "humidity": 73.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 4,
+            "temperature": 18.5,
+            "humidity": 74.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 5,
+            "temperature": 21.1,
+            "humidity": 69.3,
+            "condition": "snow"
+          },
+          {
+            "hour": 6,
+            "temperature": 23.8,
+            "humidity": 84.0,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 20.5,
+            "humidity": 76.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 8,
+            "temperature": 19.9,
+            "humidity": 78.5,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 21.4,
+            "humidity": 84.8,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 10,
+            "temperature": 23.7,
+            "humidity": 84.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 11,
+            "temperature": 18.7,
+            "humidity": 68.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 12,
+            "temperature": 23.0,
+            "humidity": 73.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 13,
+            "temperature": 18.2,
+            "humidity": 70.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 14,
+            "temperature": 20.7,
+            "humidity": 81.7,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 23.5,
+            "humidity": 77.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 18.9,
+            "humidity": 75.1,
+            "condition": "clear"
+          },
+          {
+            "hour": 17,
+            "temperature": 22.0,
+            "humidity": 81.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 22.0,
+            "humidity": 68.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 19,
+            "temperature": 21.2,
+            "humidity": 75.3,
+            "condition": "clear"
+          },
+          {
+            "hour": 20,
+            "temperature": 23.1,
+            "humidity": 70.6,
+            "condition": "clear"
+          },
+          {
+            "hour": 21,
+            "temperature": 21.6,
+            "humidity": 72.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 22,
+            "temperature": 20.0,
+            "humidity": 85.3,
+            "condition": "rain"
+          },
+          {
+            "hour": 23,
+            "temperature": 19.4,
+            "humidity": 83.4,
+            "condition": "partly_cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T15:18:55.020988",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 26.9,
+        "humidity": 66.7,
+        "pressure": 1008.25,
+        "wind_speed": 12.0,
+        "wind_direction": 264,
+        "condition": "cloudy",
+        "visibility": 5.165904143240805,
+        "uv_index": 3,
+        "air_quality": {
+          "aqi": 98,
+          "pm25": 32.31852182336946,
+          "pm10": 61.656824702643966,
+          "co": 0.5605596131785645,
+          "no2": 38.44219947056034,
+          "o3": 81.3237210584536
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 29.6,
+            "humidity": 76.2,
+            "condition": "snow"
+          },
+          {
+            "hour": 1,
+            "temperature": 28.9,
+            "humidity": 60.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 2,
+            "temperature": 27.9,
+            "humidity": 72.3,
+            "condition": "rain"
+          },
+          {
+            "hour": 3,
+            "temperature": 25.5,
+            "humidity": 69.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 4,
+            "temperature": 26.7,
+            "humidity": 65.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 5,
+            "temperature": 24.9,
+            "humidity": 60.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 6,
+            "temperature": 24.7,
+            "humidity": 62.8,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 26.7,
+            "humidity": 75.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 8,
+            "temperature": 24.0,
+            "humidity": 67.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 9,
+            "temperature": 28.1,
+            "humidity": 75.3,
+            "condition": "clear"
+          },
+          {
+            "hour": 10,
+            "temperature": 29.1,
+            "humidity": 57.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 11,
+            "temperature": 25.2,
+            "humidity": 58.0,
+            "condition": "rain"
+          },
+          {
+            "hour": 12,
+            "temperature": 27.7,
+            "humidity": 67.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 13,
+            "temperature": 28.7,
+            "humidity": 61.5,
+            "condition": "clear"
+          },
+          {
+            "hour": 14,
+            "temperature": 25.8,
+            "humidity": 60.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 25.5,
+            "humidity": 66.9,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 28.7,
+            "humidity": 71.8,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 27.5,
+            "humidity": 66.8,
+            "condition": "clear"
+          },
+          {
+            "hour": 18,
+            "temperature": 24.5,
+            "humidity": 74.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 19,
+            "temperature": 24.0,
+            "humidity": 66.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 20,
+            "temperature": 28.0,
+            "humidity": 74.3,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 21,
+            "temperature": 29.1,
+            "humidity": 76.7,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 22,
+            "temperature": 26.3,
+            "humidity": 62.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 25.7,
+            "humidity": 76.5,
+            "condition": "partly_cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T15:33:55.930281",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 19.6,
+        "humidity": 73.0,
+        "pressure": 1005.01,
+        "wind_speed": 7.8,
+        "wind_direction": 26,
+        "condition": "partly_cloudy",
+        "visibility": 16.807535444240344,
+        "uv_index": 0,
+        "air_quality": {
+          "aqi": 130,
+          "pm25": 10.877683932918702,
+          "pm10": 52.81188431401277,
+          "co": 0.822470961605676,
+          "no2": 25.203651378510468,
+          "o3": 67.2187807871367
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 22.0,
+            "humidity": 63.1,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 1,
+            "temperature": 19.2,
+            "humidity": 81.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 2,
+            "temperature": 17.3,
+            "humidity": 74.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 3,
+            "temperature": 22.6,
+            "humidity": 65.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 4,
+            "temperature": 22.3,
+            "humidity": 68.1,
+            "condition": "snow"
+          },
+          {
+            "hour": 5,
+            "temperature": 16.7,
+            "humidity": 72.3,
+            "condition": "snow"
+          },
+          {
+            "hour": 6,
+            "temperature": 19.4,
+            "humidity": 71.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 7,
+            "temperature": 21.7,
+            "humidity": 82.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 8,
+            "temperature": 20.3,
+            "humidity": 71.2,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 21.8,
+            "humidity": 70.4,
+            "condition": "rain"
+          },
+          {
+            "hour": 10,
+            "temperature": 18.9,
+            "humidity": 78.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 11,
+            "temperature": 17.5,
+            "humidity": 69.0,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 12,
+            "temperature": 19.8,
+            "humidity": 70.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 13,
+            "temperature": 19.0,
+            "humidity": 79.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 20.6,
+            "humidity": 63.9,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 18.2,
+            "humidity": 64.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 16,
+            "temperature": 21.9,
+            "humidity": 79.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 18.1,
+            "humidity": 78.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 21.6,
+            "humidity": 69.2,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 19,
+            "temperature": 17.2,
+            "humidity": 70.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 20,
+            "temperature": 19.1,
+            "humidity": 78.2,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 21,
+            "temperature": 16.8,
+            "humidity": 69.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 22,
+            "temperature": 20.8,
+            "humidity": 77.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 18.0,
+            "humidity": 75.0,
+            "condition": "cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T18:48:55.026561",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 11.8,
+        "humidity": 52.2,
+        "pressure": 1009.96,
+        "wind_speed": 2.0,
+        "wind_direction": 8,
+        "condition": "cloudy",
+        "visibility": 17.699399398054997,
+        "uv_index": 1,
+        "air_quality": {
+          "aqi": 53,
+          "pm25": 26.61334415403529,
+          "pm10": 17.372210678907813,
+          "co": 1.370083451905561,
+          "no2": 40.34183748784453,
+          "o3": 184.68115470774188
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 13.3,
+            "humidity": 43.2,
+            "condition": "snow"
+          },
+          {
+            "hour": 1,
+            "temperature": 11.9,
+            "humidity": 48.0,
+            "condition": "rain"
+          },
+          {
+            "hour": 2,
+            "temperature": 12.6,
+            "humidity": 42.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 3,
+            "temperature": 12.0,
+            "humidity": 52.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 4,
+            "temperature": 9.9,
+            "humidity": 46.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 5,
+            "temperature": 11.7,
+            "humidity": 43.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 6,
+            "temperature": 9.7,
+            "humidity": 59.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 7,
+            "temperature": 11.9,
+            "humidity": 54.1,
+            "condition": "rain"
+          },
+          {
+            "hour": 8,
+            "temperature": 10.6,
+            "humidity": 55.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 9,
+            "temperature": 11.6,
+            "humidity": 51.3,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 10,
+            "temperature": 14.1,
+            "humidity": 57.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 11,
+            "temperature": 14.2,
+            "humidity": 53.1,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 12,
+            "temperature": 13.9,
+            "humidity": 54.3,
+            "condition": "snow"
+          },
+          {
+            "hour": 13,
+            "temperature": 13.1,
+            "humidity": 51.8,
+            "condition": "rain"
+          },
+          {
+            "hour": 14,
+            "temperature": 11.3,
+            "humidity": 60.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 15,
+            "temperature": 10.4,
+            "humidity": 45.4,
+            "condition": "clear"
+          },
+          {
+            "hour": 16,
+            "temperature": 13.1,
+            "humidity": 61.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 17,
+            "temperature": 14.2,
+            "humidity": 43.9,
+            "condition": "rain"
+          },
+          {
+            "hour": 18,
+            "temperature": 11.0,
+            "humidity": 55.4,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 19,
+            "temperature": 10.1,
+            "humidity": 57.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 20,
+            "temperature": 12.2,
+            "humidity": 57.8,
+            "condition": "rain"
+          },
+          {
+            "hour": 21,
+            "temperature": 9.8,
+            "humidity": 61.4,
+            "condition": "rain"
+          },
+          {
+            "hour": 22,
+            "temperature": 9.8,
+            "humidity": 61.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 12.4,
+            "humidity": 54.0,
+            "condition": "partly_cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T19:03:55.039121",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 20.9,
+        "humidity": 50.2,
+        "pressure": 1007.45,
+        "wind_speed": 11.0,
+        "wind_direction": 184,
+        "condition": "rain",
+        "visibility": 17.28691298966678,
+        "uv_index": 6,
+        "air_quality": {
+          "aqi": 144,
+          "pm25": 5.147206987012379,
+          "pm10": 51.227643859735416,
+          "co": 0.4302525341558687,
+          "no2": 61.24493954790083,
+          "o3": 161.14257471424747
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 20.4,
+            "humidity": 51.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 1,
+            "temperature": 22.4,
+            "humidity": 46.4,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 2,
+            "temperature": 18.2,
+            "humidity": 56.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 3,
+            "temperature": 20.2,
+            "humidity": 41.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 4,
+            "temperature": 23.5,
+            "humidity": 55.2,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 5,
+            "temperature": 19.7,
+            "humidity": 52.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 6,
+            "temperature": 20.1,
+            "humidity": 47.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 7,
+            "temperature": 19.8,
+            "humidity": 55.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 8,
+            "temperature": 22.3,
+            "humidity": 54.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 19.3,
+            "humidity": 47.2,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 10,
+            "temperature": 18.7,
+            "humidity": 43.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 11,
+            "temperature": 20.1,
+            "humidity": 54.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 12,
+            "temperature": 23.7,
+            "humidity": 52.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 13,
+            "temperature": 22.1,
+            "humidity": 40.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 20.3,
+            "humidity": 45.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 15,
+            "temperature": 22.0,
+            "humidity": 57.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 16,
+            "temperature": 22.4,
+            "humidity": 45.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 18.0,
+            "humidity": 43.3,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 19.7,
+            "humidity": 48.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 19,
+            "temperature": 19.6,
+            "humidity": 47.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 20,
+            "temperature": 21.5,
+            "humidity": 56.1,
+            "condition": "clear"
+          },
+          {
+            "hour": 21,
+            "temperature": 18.7,
+            "humidity": 49.1,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 22,
+            "temperature": 21.1,
+            "humidity": 57.3,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 22.6,
+            "humidity": 48.2,
+            "condition": "partly_cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T19:18:55.046553",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 30.0,
+        "humidity": 46.4,
+        "pressure": 1018.68,
+        "wind_speed": 5.8,
+        "wind_direction": 178,
+        "condition": "rain",
+        "visibility": 18.34228971592966,
+        "uv_index": 1,
+        "air_quality": {
+          "aqi": 50,
+          "pm25": 33.29456636512147,
+          "pm10": 77.90388984359795,
+          "co": 0.9204110167618671,
+          "no2": 61.14959407349191,
+          "o3": 178.82774852164042
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 27.2,
+            "humidity": 52.3,
+            "condition": "rain"
+          },
+          {
+            "hour": 1,
+            "temperature": 32.2,
+            "humidity": 49.2,
+            "condition": "rain"
+          },
+          {
+            "hour": 2,
+            "temperature": 29.2,
+            "humidity": 36.5,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 3,
+            "temperature": 31.0,
+            "humidity": 38.7,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 4,
+            "temperature": 31.9,
+            "humidity": 53.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 5,
+            "temperature": 31.0,
+            "humidity": 44.7,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 6,
+            "temperature": 32.2,
+            "humidity": 45.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 28.2,
+            "humidity": 45.5,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 8,
+            "temperature": 31.5,
+            "humidity": 46.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 31.3,
+            "humidity": 45.9,
+            "condition": "rain"
+          },
+          {
+            "hour": 10,
+            "temperature": 27.8,
+            "humidity": 51.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 11,
+            "temperature": 29.8,
+            "humidity": 43.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 12,
+            "temperature": 28.4,
+            "humidity": 45.3,
+            "condition": "rain"
+          },
+          {
+            "hour": 13,
+            "temperature": 27.3,
+            "humidity": 40.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 28.0,
+            "humidity": 38.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 28.4,
+            "humidity": 39.3,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 31.1,
+            "humidity": 45.4,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 28.4,
+            "humidity": 42.2,
+            "condition": "snow"
+          },
+          {
+            "hour": 18,
+            "temperature": 31.5,
+            "humidity": 46.4,
+            "condition": "clear"
+          },
+          {
+            "hour": 19,
+            "temperature": 29.3,
+            "humidity": 51.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 20,
+            "temperature": 29.8,
+            "humidity": 40.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 21,
+            "temperature": 32.7,
+            "humidity": 42.3,
+            "condition": "rain"
+          },
+          {
+            "hour": 22,
+            "temperature": 30.2,
+            "humidity": 49.9,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 30.1,
+            "humidity": 39.2,
+            "condition": "cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T19:33:55.078213",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 21.0,
+        "humidity": 75.5,
+        "pressure": 1004.79,
+        "wind_speed": 0.7,
+        "wind_direction": 262,
+        "condition": "partly_cloudy",
+        "visibility": 10.062444605512749,
+        "uv_index": 6,
+        "air_quality": {
+          "aqi": 44,
+          "pm25": 27.46218679493679,
+          "pm10": 35.82368830673818,
+          "co": 1.0392306592670992,
+          "no2": 61.890353132153976,
+          "o3": 169.30561554471663
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 23.4,
+            "humidity": 80.4,
+            "condition": "rain"
+          },
+          {
+            "hour": 1,
+            "temperature": 19.2,
+            "humidity": 71.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 2,
+            "temperature": 22.3,
+            "humidity": 82.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 3,
+            "temperature": 19.5,
+            "humidity": 77.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 4,
+            "temperature": 18.6,
+            "humidity": 69.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 5,
+            "temperature": 20.5,
+            "humidity": 84.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 6,
+            "temperature": 19.1,
+            "humidity": 67.0,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 18.1,
+            "humidity": 85.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 8,
+            "temperature": 20.2,
+            "humidity": 77.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 9,
+            "temperature": 23.3,
+            "humidity": 69.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 10,
+            "temperature": 20.1,
+            "humidity": 70.3,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 11,
+            "temperature": 19.3,
+            "humidity": 83.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 12,
+            "temperature": 21.9,
+            "humidity": 80.8,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 13,
+            "temperature": 19.1,
+            "humidity": 78.8,
+            "condition": "rain"
+          },
+          {
+            "hour": 14,
+            "temperature": 22.8,
+            "humidity": 71.9,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 23.8,
+            "humidity": 71.2,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 21.6,
+            "humidity": 70.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 22.9,
+            "humidity": 66.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 18,
+            "temperature": 21.2,
+            "humidity": 84.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 19,
+            "temperature": 20.0,
+            "humidity": 72.2,
+            "condition": "rain"
+          },
+          {
+            "hour": 20,
+            "temperature": 21.2,
+            "humidity": 70.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 21,
+            "temperature": 22.9,
+            "humidity": 75.8,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 22,
+            "temperature": 19.6,
+            "humidity": 80.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 18.8,
+            "humidity": 80.3,
+            "condition": "clear"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T19:48:55.042994",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 27.8,
+        "humidity": 49.4,
+        "pressure": 1014.59,
+        "wind_speed": 11.1,
+        "wind_direction": 138,
+        "condition": "rain",
+        "visibility": 6.29271568668214,
+        "uv_index": 7,
+        "air_quality": {
+          "aqi": 99,
+          "pm25": 24.381780673883988,
+          "pm10": 57.07125412195566,
+          "co": 1.7392667881786492,
+          "no2": 21.838417664080136,
+          "o3": 112.41164606992174
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 28.6,
+            "humidity": 51.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 1,
+            "temperature": 26.8,
+            "humidity": 50.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 2,
+            "temperature": 25.8,
+            "humidity": 50.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 3,
+            "temperature": 26.9,
+            "humidity": 43.4,
+            "condition": "clear"
+          },
+          {
+            "hour": 4,
+            "temperature": 29.1,
+            "humidity": 55.8,
+            "condition": "clear"
+          },
+          {
+            "hour": 5,
+            "temperature": 28.3,
+            "humidity": 43.9,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 6,
+            "temperature": 26.4,
+            "humidity": 55.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 29.4,
+            "humidity": 49.9,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 8,
+            "temperature": 29.2,
+            "humidity": 58.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 28.6,
+            "humidity": 53.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 10,
+            "temperature": 24.8,
+            "humidity": 48.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 11,
+            "temperature": 25.7,
+            "humidity": 52.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 12,
+            "temperature": 25.0,
+            "humidity": 57.5,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 13,
+            "temperature": 27.8,
+            "humidity": 47.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 30.1,
+            "humidity": 51.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 29.4,
+            "humidity": 51.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 30.4,
+            "humidity": 50.8,
+            "condition": "clear"
+          },
+          {
+            "hour": 17,
+            "temperature": 28.8,
+            "humidity": 57.4,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 30.2,
+            "humidity": 41.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 19,
+            "temperature": 30.4,
+            "humidity": 44.4,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 20,
+            "temperature": 27.0,
+            "humidity": 55.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 21,
+            "temperature": 25.6,
+            "humidity": 50.0,
+            "condition": "clear"
+          },
+          {
+            "hour": 22,
+            "temperature": 25.2,
+            "humidity": 47.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 26.0,
+            "humidity": 48.0,
+            "condition": "partly_cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T20:03:55.060410",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 20.5,
+        "humidity": 44.2,
+        "pressure": 1006.19,
+        "wind_speed": 10.4,
+        "wind_direction": 229,
+        "condition": "rain",
+        "visibility": 16.30920836076564,
+        "uv_index": 8,
+        "air_quality": {
+          "aqi": 23,
+          "pm25": 48.466147085611645,
+          "pm10": 20.416688777572716,
+          "co": 1.3677568266921325,
+          "no2": 39.242281491403475,
+          "o3": 75.7112181674977
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 19.0,
+            "humidity": 36.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 1,
+            "temperature": 21.4,
+            "humidity": 46.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 2,
+            "temperature": 19.2,
+            "humidity": 38.3,
+            "condition": "clear"
+          },
+          {
+            "hour": 3,
+            "temperature": 22.7,
+            "humidity": 43.0,
+            "condition": "rain"
+          },
+          {
+            "hour": 4,
+            "temperature": 19.4,
+            "humidity": 50.3,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 5,
+            "temperature": 17.8,
+            "humidity": 35.0,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 6,
+            "temperature": 22.8,
+            "humidity": 46.4,
+            "condition": "rain"
+          },
+          {
+            "hour": 7,
+            "temperature": 22.9,
+            "humidity": 49.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 8,
+            "temperature": 22.5,
+            "humidity": 36.0,
+            "condition": "rain"
+          },
+          {
+            "hour": 9,
+            "temperature": 21.5,
+            "humidity": 50.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 10,
+            "temperature": 22.0,
+            "humidity": 48.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 11,
+            "temperature": 18.7,
+            "humidity": 39.3,
+            "condition": "clear"
+          },
+          {
+            "hour": 12,
+            "temperature": 22.0,
+            "humidity": 43.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 13,
+            "temperature": 18.7,
+            "humidity": 35.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 14,
+            "temperature": 21.4,
+            "humidity": 39.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 23.3,
+            "humidity": 52.8,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 22.7,
+            "humidity": 41.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 17,
+            "temperature": 18.3,
+            "humidity": 36.9,
+            "condition": "rain"
+          },
+          {
+            "hour": 18,
+            "temperature": 18.2,
+            "humidity": 42.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 19,
+            "temperature": 22.4,
+            "humidity": 41.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 20,
+            "temperature": 22.4,
+            "humidity": 48.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 21,
+            "temperature": 18.7,
+            "humidity": 41.5,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 22,
+            "temperature": 17.7,
+            "humidity": 38.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 23,
+            "temperature": 21.9,
+            "humidity": 36.8,
+            "condition": "snow"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T20:18:55.067759",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 16.8,
+        "humidity": 74.7,
+        "pressure": 1018.05,
+        "wind_speed": 7.0,
+        "wind_direction": 304,
+        "condition": "cloudy",
+        "visibility": 7.7307023514322815,
+        "uv_index": 8,
+        "air_quality": {
+          "aqi": 80,
+          "pm25": 43.776174744125875,
+          "pm10": 44.398813902783665,
+          "co": 1.1075042000676396,
+          "no2": 65.07776880221242,
+          "o3": 120.45439225432038
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 14.3,
+            "humidity": 71.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 1,
+            "temperature": 16.1,
+            "humidity": 77.3,
+            "condition": "rain"
+          },
+          {
+            "hour": 2,
+            "temperature": 15.4,
+            "humidity": 70.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 3,
+            "temperature": 18.1,
+            "humidity": 67.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 4,
+            "temperature": 15.8,
+            "humidity": 65.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 5,
+            "temperature": 19.7,
+            "humidity": 68.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 6,
+            "temperature": 14.4,
+            "humidity": 73.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 7,
+            "temperature": 18.9,
+            "humidity": 71.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 8,
+            "temperature": 13.9,
+            "humidity": 67.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 16.2,
+            "humidity": 66.4,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 10,
+            "temperature": 14.7,
+            "humidity": 76.2,
+            "condition": "snow"
+          },
+          {
+            "hour": 11,
+            "temperature": 17.6,
+            "humidity": 70.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 12,
+            "temperature": 18.5,
+            "humidity": 82.8,
+            "condition": "clear"
+          },
+          {
+            "hour": 13,
+            "temperature": 17.4,
+            "humidity": 81.8,
+            "condition": "rain"
+          },
+          {
+            "hour": 14,
+            "temperature": 14.8,
+            "humidity": 70.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 16.3,
+            "humidity": 77.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 17.9,
+            "humidity": 73.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 19.0,
+            "humidity": 74.2,
+            "condition": "snow"
+          },
+          {
+            "hour": 18,
+            "temperature": 14.5,
+            "humidity": 64.8,
+            "condition": "rain"
+          },
+          {
+            "hour": 19,
+            "temperature": 18.7,
+            "humidity": 65.9,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 20,
+            "temperature": 19.0,
+            "humidity": 84.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 21,
+            "temperature": 15.4,
+            "humidity": 77.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 22,
+            "temperature": 18.4,
+            "humidity": 65.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 23,
+            "temperature": 19.6,
+            "humidity": 84.6,
+            "condition": "clear"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T20:33:55.094383",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 25.4,
+        "humidity": 67.6,
+        "pressure": 1016.04,
+        "wind_speed": 12.6,
+        "wind_direction": 226,
+        "condition": "rain",
+        "visibility": 18.881447649327104,
+        "uv_index": 0,
+        "air_quality": {
+          "aqi": 78,
+          "pm25": 18.236099633451154,
+          "pm10": 47.90360958228657,
+          "co": 1.7507177022455631,
+          "no2": 45.18652480627829,
+          "o3": 53.62716029928636
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 27.9,
+            "humidity": 66.1,
+            "condition": "rain"
+          },
+          {
+            "hour": 1,
+            "temperature": 26.0,
+            "humidity": 76.0,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 2,
+            "temperature": 23.9,
+            "humidity": 71.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 3,
+            "temperature": 27.1,
+            "humidity": 66.0,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 4,
+            "temperature": 24.3,
+            "humidity": 64.6,
+            "condition": "clear"
+          },
+          {
+            "hour": 5,
+            "temperature": 23.5,
+            "humidity": 72.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 6,
+            "temperature": 25.4,
+            "humidity": 61.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 7,
+            "temperature": 27.9,
+            "humidity": 61.5,
+            "condition": "clear"
+          },
+          {
+            "hour": 8,
+            "temperature": 22.9,
+            "humidity": 64.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 27.1,
+            "humidity": 71.5,
+            "condition": "clear"
+          },
+          {
+            "hour": 10,
+            "temperature": 23.7,
+            "humidity": 69.9,
+            "condition": "rain"
+          },
+          {
+            "hour": 11,
+            "temperature": 25.6,
+            "humidity": 58.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 12,
+            "temperature": 22.7,
+            "humidity": 73.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 13,
+            "temperature": 27.3,
+            "humidity": 66.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 24.3,
+            "humidity": 62.1,
+            "condition": "snow"
+          },
+          {
+            "hour": 15,
+            "temperature": 27.8,
+            "humidity": 65.3,
+            "condition": "snow"
+          },
+          {
+            "hour": 16,
+            "temperature": 22.4,
+            "humidity": 58.8,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 26.7,
+            "humidity": 70.5,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 26.0,
+            "humidity": 61.3,
+            "condition": "clear"
+          },
+          {
+            "hour": 19,
+            "temperature": 23.1,
+            "humidity": 76.0,
+            "condition": "clear"
+          },
+          {
+            "hour": 20,
+            "temperature": 25.4,
+            "humidity": 59.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 21,
+            "temperature": 27.3,
+            "humidity": 58.4,
+            "condition": "clear"
+          },
+          {
+            "hour": 22,
+            "temperature": 24.0,
+            "humidity": 73.5,
+            "condition": "clear"
+          },
+          {
+            "hour": 23,
+            "temperature": 26.0,
+            "humidity": 61.1,
+            "condition": "partly_cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T20:48:55.064079",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 14.6,
+        "humidity": 45.6,
+        "pressure": 1004.19,
+        "wind_speed": 12.3,
+        "wind_direction": 61,
+        "condition": "cloudy",
+        "visibility": 13.06489856278008,
+        "uv_index": 10,
+        "air_quality": {
+          "aqi": 65,
+          "pm25": 15.680052992389054,
+          "pm10": 48.55076901251122,
+          "co": 1.4664360107370813,
+          "no2": 21.36793124132335,
+          "o3": 58.80551943631791
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 11.7,
+            "humidity": 53.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 1,
+            "temperature": 14.5,
+            "humidity": 45.1,
+            "condition": "rain"
+          },
+          {
+            "hour": 2,
+            "temperature": 11.6,
+            "humidity": 37.3,
+            "condition": "clear"
+          },
+          {
+            "hour": 3,
+            "temperature": 15.7,
+            "humidity": 50.1,
+            "condition": "rain"
+          },
+          {
+            "hour": 4,
+            "temperature": 15.2,
+            "humidity": 51.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 5,
+            "temperature": 15.1,
+            "humidity": 36.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 6,
+            "temperature": 17.6,
+            "humidity": 49.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 7,
+            "temperature": 14.4,
+            "humidity": 49.9,
+            "condition": "snow"
+          },
+          {
+            "hour": 8,
+            "temperature": 13.5,
+            "humidity": 45.8,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 14.1,
+            "humidity": 49.3,
+            "condition": "snow"
+          },
+          {
+            "hour": 10,
+            "temperature": 14.4,
+            "humidity": 49.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 11,
+            "temperature": 14.9,
+            "humidity": 41.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 12,
+            "temperature": 12.2,
+            "humidity": 55.1,
+            "condition": "rain"
+          },
+          {
+            "hour": 13,
+            "temperature": 13.1,
+            "humidity": 50.0,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 12.1,
+            "humidity": 47.9,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 14.8,
+            "humidity": 42.4,
+            "condition": "clear"
+          },
+          {
+            "hour": 16,
+            "temperature": 12.1,
+            "humidity": 46.7,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 15.3,
+            "humidity": 54.8,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 13.3,
+            "humidity": 44.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 19,
+            "temperature": 12.7,
+            "humidity": 40.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 20,
+            "temperature": 15.8,
+            "humidity": 39.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 21,
+            "temperature": 12.6,
+            "humidity": 49.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 22,
+            "temperature": 15.5,
+            "humidity": 43.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 23,
+            "temperature": 15.0,
+            "humidity": 46.3,
+            "condition": "rain"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T21:03:55.076088",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 20.5,
+        "humidity": 53.1,
+        "pressure": 1019.25,
+        "wind_speed": 14.3,
+        "wind_direction": 324,
+        "condition": "snow",
+        "visibility": 10.510412410352098,
+        "uv_index": 10,
+        "air_quality": {
+          "aqi": 142,
+          "pm25": 44.49879404526151,
+          "pm10": 78.23447282179477,
+          "co": 0.1932729852445101,
+          "no2": 52.53079163667691,
+          "o3": 126.00176275232388
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 18.0,
+            "humidity": 51.9,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 1,
+            "temperature": 21.0,
+            "humidity": 54.6,
+            "condition": "clear"
+          },
+          {
+            "hour": 2,
+            "temperature": 20.9,
+            "humidity": 55.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 3,
+            "temperature": 20.7,
+            "humidity": 43.1,
+            "condition": "rain"
+          },
+          {
+            "hour": 4,
+            "temperature": 18.6,
+            "humidity": 62.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 5,
+            "temperature": 18.1,
+            "humidity": 60.6,
+            "condition": "snow"
+          },
+          {
+            "hour": 6,
+            "temperature": 21.6,
+            "humidity": 51.0,
+            "condition": "rain"
+          },
+          {
+            "hour": 7,
+            "temperature": 22.6,
+            "humidity": 57.0,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 8,
+            "temperature": 17.7,
+            "humidity": 58.7,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 22.6,
+            "humidity": 61.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 10,
+            "temperature": 19.7,
+            "humidity": 52.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 11,
+            "temperature": 21.5,
+            "humidity": 62.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 12,
+            "temperature": 23.2,
+            "humidity": 46.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 13,
+            "temperature": 18.1,
+            "humidity": 57.1,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 21.3,
+            "humidity": 52.3,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 19.1,
+            "humidity": 45.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 16,
+            "temperature": 22.2,
+            "humidity": 60.1,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 19.5,
+            "humidity": 50.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 18,
+            "temperature": 23.2,
+            "humidity": 53.4,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 19,
+            "temperature": 18.5,
+            "humidity": 51.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 20,
+            "temperature": 21.7,
+            "humidity": 45.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 21,
+            "temperature": 18.6,
+            "humidity": 60.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 22,
+            "temperature": 21.6,
+            "humidity": 52.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 23,
+            "temperature": 20.0,
+            "humidity": 46.4,
+            "condition": "cloudy"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T21:18:55.065848",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 26.9,
+        "humidity": 73.4,
+        "pressure": 1004.06,
+        "wind_speed": 10.9,
+        "wind_direction": 312,
+        "condition": "snow",
+        "visibility": 9.184189218256076,
+        "uv_index": 4,
+        "air_quality": {
+          "aqi": 31,
+          "pm25": 13.490632605939986,
+          "pm10": 61.76621111433095,
+          "co": 1.704284612905955,
+          "no2": 77.63360919608706,
+          "o3": 178.7317806487156
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 26.5,
+            "humidity": 74.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 1,
+            "temperature": 28.4,
+            "humidity": 71.8,
+            "condition": "clear"
+          },
+          {
+            "hour": 2,
+            "temperature": 29.8,
+            "humidity": 78.2,
+            "condition": "snow"
+          },
+          {
+            "hour": 3,
+            "temperature": 29.0,
+            "humidity": 81.8,
+            "condition": "rain"
+          },
+          {
+            "hour": 4,
+            "temperature": 26.9,
+            "humidity": 80.2,
+            "condition": "rain"
+          },
+          {
+            "hour": 5,
+            "temperature": 27.5,
+            "humidity": 73.3,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 6,
+            "temperature": 25.9,
+            "humidity": 77.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 26.3,
+            "humidity": 71.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 8,
+            "temperature": 24.6,
+            "humidity": 76.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 9,
+            "temperature": 25.7,
+            "humidity": 65.2,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 10,
+            "temperature": 26.0,
+            "humidity": 70.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 11,
+            "temperature": 28.7,
+            "humidity": 69.3,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 12,
+            "temperature": 27.6,
+            "humidity": 73.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 13,
+            "temperature": 24.1,
+            "humidity": 83.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 14,
+            "temperature": 27.1,
+            "humidity": 63.5,
+            "condition": "rain"
+          },
+          {
+            "hour": 15,
+            "temperature": 26.7,
+            "humidity": 63.5,
+            "condition": "clear"
+          },
+          {
+            "hour": 16,
+            "temperature": 25.6,
+            "humidity": 81.8,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 24.2,
+            "humidity": 65.4,
+            "condition": "rain"
+          },
+          {
+            "hour": 18,
+            "temperature": 24.9,
+            "humidity": 67.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 19,
+            "temperature": 29.2,
+            "humidity": 68.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 20,
+            "temperature": 26.4,
+            "humidity": 81.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 21,
+            "temperature": 24.1,
+            "humidity": 77.8,
+            "condition": "clear"
+          },
+          {
+            "hour": 22,
+            "temperature": 24.8,
+            "humidity": 72.0,
+            "condition": "clear"
+          },
+          {
+            "hour": 23,
+            "temperature": 27.9,
+            "humidity": 82.1,
+            "condition": "rain"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T21:33:55.124162",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 26.3,
+        "humidity": 69.3,
+        "pressure": 1021.06,
+        "wind_speed": 4.1,
+        "wind_direction": 70,
+        "condition": "cloudy",
+        "visibility": 11.688839791275623,
+        "uv_index": 4,
+        "air_quality": {
+          "aqi": 104,
+          "pm25": 30.001250114450457,
+          "pm10": 40.74282233488377,
+          "co": 1.9008440464044982,
+          "no2": 51.102154426739446,
+          "o3": 83.69758484723316
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 27.2,
+            "humidity": 78.6,
+            "condition": "rain"
+          },
+          {
+            "hour": 1,
+            "temperature": 27.4,
+            "humidity": 60.4,
+            "condition": "clear"
+          },
+          {
+            "hour": 2,
+            "temperature": 24.3,
+            "humidity": 70.3,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 3,
+            "temperature": 24.8,
+            "humidity": 67.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 4,
+            "temperature": 26.9,
+            "humidity": 74.7,
+            "condition": "snow"
+          },
+          {
+            "hour": 5,
+            "temperature": 24.6,
+            "humidity": 73.4,
+            "condition": "snow"
+          },
+          {
+            "hour": 6,
+            "temperature": 25.0,
+            "humidity": 63.3,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 28.2,
+            "humidity": 73.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 8,
+            "temperature": 25.1,
+            "humidity": 65.2,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 9,
+            "temperature": 26.4,
+            "humidity": 65.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 10,
+            "temperature": 26.6,
+            "humidity": 72.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 11,
+            "temperature": 25.2,
+            "humidity": 77.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 12,
+            "temperature": 27.5,
+            "humidity": 59.8,
+            "condition": "rain"
+          },
+          {
+            "hour": 13,
+            "temperature": 28.4,
+            "humidity": 69.4,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 23.4,
+            "humidity": 64.1,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 27.6,
+            "humidity": 61.1,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 16,
+            "temperature": 27.9,
+            "humidity": 77.3,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 17,
+            "temperature": 24.7,
+            "humidity": 74.3,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 23.8,
+            "humidity": 74.0,
+            "condition": "rain"
+          },
+          {
+            "hour": 19,
+            "temperature": 23.6,
+            "humidity": 76.1,
+            "condition": "clear"
+          },
+          {
+            "hour": 20,
+            "temperature": 26.4,
+            "humidity": 73.2,
+            "condition": "snow"
+          },
+          {
+            "hour": 21,
+            "temperature": 29.2,
+            "humidity": 71.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 22,
+            "temperature": 23.7,
+            "humidity": 72.0,
+            "condition": "rain"
+          },
+          {
+            "hour": 23,
+            "temperature": 23.8,
+            "humidity": 76.2,
+            "condition": "snow"
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-09T22:18:55.082670",
+      "location": {
+        "city": "Demo City",
+        "country": "US",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "current": {
+        "temperature": 17.5,
+        "humidity": 70.8,
+        "pressure": 1003.45,
+        "wind_speed": 7.2,
+        "wind_direction": 179,
+        "condition": "cloudy",
+        "visibility": 18.44548047782124,
+        "uv_index": 9,
+        "air_quality": {
+          "aqi": 21,
+          "pm25": 18.757548243827703,
+          "pm10": 43.81905032014242,
+          "co": 1.6610551494353216,
+          "no2": 13.489146909503178,
+          "o3": 52.03297338361738
+        }
+      },
+      "forecast": {
+        "next_24h": [
+          {
+            "hour": 0,
+            "temperature": 14.5,
+            "humidity": 80.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 1,
+            "temperature": 14.7,
+            "humidity": 75.7,
+            "condition": "rain"
+          },
+          {
+            "hour": 2,
+            "temperature": 14.8,
+            "humidity": 61.4,
+            "condition": "clear"
+          },
+          {
+            "hour": 3,
+            "temperature": 17.9,
+            "humidity": 75.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 4,
+            "temperature": 16.0,
+            "humidity": 64.0,
+            "condition": "clear"
+          },
+          {
+            "hour": 5,
+            "temperature": 15.1,
+            "humidity": 73.7,
+            "condition": "clear"
+          },
+          {
+            "hour": 6,
+            "temperature": 14.8,
+            "humidity": 75.5,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 7,
+            "temperature": 18.1,
+            "humidity": 80.5,
+            "condition": "clear"
+          },
+          {
+            "hour": 8,
+            "temperature": 19.2,
+            "humidity": 68.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 9,
+            "temperature": 15.4,
+            "humidity": 79.0,
+            "condition": "snow"
+          },
+          {
+            "hour": 10,
+            "temperature": 20.2,
+            "humidity": 74.1,
+            "condition": "clear"
+          },
+          {
+            "hour": 11,
+            "temperature": 17.0,
+            "humidity": 76.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 12,
+            "temperature": 19.9,
+            "humidity": 63.9,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 13,
+            "temperature": 15.1,
+            "humidity": 80.6,
+            "condition": "partly_cloudy"
+          },
+          {
+            "hour": 14,
+            "temperature": 17.4,
+            "humidity": 70.6,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 15,
+            "temperature": 19.9,
+            "humidity": 67.0,
+            "condition": "clear"
+          },
+          {
+            "hour": 16,
+            "temperature": 17.5,
+            "humidity": 71.5,
+            "condition": "snow"
+          },
+          {
+            "hour": 17,
+            "temperature": 15.4,
+            "humidity": 80.1,
+            "condition": "cloudy"
+          },
+          {
+            "hour": 18,
+            "temperature": 19.1,
+            "humidity": 68.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 19,
+            "temperature": 19.7,
+            "humidity": 64.8,
+            "condition": "snow"
+          },
+          {
+            "hour": 20,
+            "temperature": 19.7,
+            "humidity": 63.8,
+            "condition": "clear"
+          },
+          {
+            "hour": 21,
+            "temperature": 15.8,
+            "humidity": 72.9,
+            "condition": "clear"
+          },
+          {
+            "hour": 22,
+            "temperature": 15.0,
+            "humidity": 67.2,
+            "condition": "clear"
+          },
+          {
+            "hour": 23,
+            "temperature": 20.2,
+            "humidity": 68.3,
+            "condition": "cloudy"
+          }
+        ]
+      }
     }
   ],
-  "last_updated": "2025-07-09T13:12:45.085425"
+  "last_updated": "2025-07-09T22:18:55.083539"
 }

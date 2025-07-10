@@ -17,6 +17,7 @@ class TimeRange(str, Enum):
     """Supported time ranges for data queries."""
     HOUR_1 = "1h"
     HOUR_6 = "6h"
+    HOUR_12 = "12h"
     HOUR_24 = "24h"
     DAY_7 = "7d"
     DAY_30 = "30d"
