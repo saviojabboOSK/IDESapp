@@ -93,8 +93,14 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
       onUpdate(config.id, updates)
       setShowSettingsModal(false)
     },
-    [config.id, onUpdate]
+    [config.id, onUpdate],
   )
+
+  const handleDeleteClick = () => {
+    if (window.confirm(`Are you sure you want to delete the graph "${config.title}"?`)) {
+      onDelete(config.id)
+    }
+  }
 
   // Prepare chart data
   const chartData = React.useMemo(() => {
@@ -171,35 +177,41 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
   }
 
   return (
-    <div className="graph-card bg-white rounded-lg shadow-md border border-gray-200 relative overflow-hidden">
+    <div className="graph-card bg-white rounded-lg shadow-md border border-gray-200 relative overflow-hidden h-full flex flex-col">
       {/* Main Card Content */}
-      <div className="p-4 h-full flex flex-col">
+      <div className="p-4 flex-1 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <h3 className="text-lg font-semibold text-gray-900 truncate">
+          <div className="drag-handle flex items-center space-x-2 cursor-move flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-gray-900 truncate" title={config.title}>
               {config.title}
             </h3>
             {config.is_ai_generated && (
-              <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">
+              <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full flex-shrink-0">
                 AI
               </span>
             )}
             {isLoading && (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent flex-shrink-0"></div>
             )}
           </div>
 
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
             <button
-              onClick={() => setShowSettingsModal(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSettingsModal(true);
+              }}
               className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
               title="Settings"
             >
               <Settings className="h-4 w-4" />
             </button>
             <button
-              onClick={() => onDelete(config.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick();
+              }}
               className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
               title="Delete"
             >
@@ -218,12 +230,14 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
         </div>
       </div>
       {/* Settings Modal */}
-      <GraphSettingsModal
-        config={config}
-        isOpen={showSettingsModal}
-        onSave={handleSaveSettings}
-        onClose={() => setShowSettingsModal(false)}
-      />
+      {showSettingsModal && (
+        <GraphSettingsModal
+          config={config}
+          isOpen={showSettingsModal}
+          onSave={handleSaveSettings}
+          onClose={() => setShowSettingsModal(false)}
+        />
+      )}
     </div>
   )
 }

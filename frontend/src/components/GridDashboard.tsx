@@ -398,7 +398,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
           draggableHandle=".drag-handle"
         >
           {graphs.map((graph) => (
-            <div key={graph.id} className="drag-handle">
+            <div key={graph.id}>
               <DraggableGraphCard
                 config={graph}
                 onUpdate={handleUpdateGraph}

@@ -214,13 +214,12 @@ async def update_graph(graph_id: str, updates: Dict[str, Any]):
     save_graph_to_file(updated_graph)
     return updated_graph
 
-@router.delete("/{graph_id}")
+@router.delete("/{graph_id}", status_code=204)
 async def delete_graph(graph_id: str):
     """Remove graph from dashboard."""
     if not delete_graph_file(graph_id):
         raise HTTPException(status_code=404, detail="Graph not found")
-    
-    return {"message": f"Graph {graph_id} deleted successfully"}
+    return
 
 @router.post("/batch/layout")
 async def update_batch_layout(layout_updates: List[Dict[str, Any]]):

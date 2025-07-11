@@ -1,38 +1,39 @@
 {
-  "id": "2d1101cb-23ee-406e-8841-116c6da159a3",
-  "title": "TEMP PPM PA",
+  "id": "72c2788e-23a3-40ad-89dd-08e3ccdeac8b",
+  "title": "Temperature",
   "chart_type": "line",
   "metrics": [
     "temperature",
-    "co2",
-    "pressure"
+    "co2"
   ],
   "time_range": "24h",
   "settings": {
     "color_scheme": [
-      "#065f46",
-      "#047857",
-      "#059669",
-      "#10b981"
+      "#ef4444",
+      "#3b82f6",
+      "#22c55e",
+      "#f59e0b",
+      "#8b5cf6",
+      "#eab308"
     ],
     "show_legend": true,
     "show_grid": true,
-    "animate": true,
-    "smooth_lines": true,
+    "animate": false,
+    "smooth_lines": false,
     "fill_area": true,
     "show_points": true,
     "y_axis_min": null,
     "y_axis_max": null
   },
   "layout": {
-    "x": 9,
-    "y": 4,
-    "width": 3,
-    "height": 4
+    "x": 0,
+    "y": 10,
+    "width": 12,
+    "height": 5
   },
   "data": null,
-  "created_at": "2025-07-10 11:18:35.805283",
-  "updated_at": "2025-07-10 13:33:26.290383",
+  "created_at": "2025-07-11 08:46:59.330959",
+  "updated_at": "2025-07-11 08:50:36.888078",
   "is_ai_generated": false,
   "auto_refresh": true,
   "refresh_interval": 30
