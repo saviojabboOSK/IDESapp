@@ -17,26 +17,29 @@ COPY . .
 RUN pnpm build
 
 # Production stage
-FROM node:18-alpine as production
+FROM nginx:alpine as production
 
-WORKDIR /app
+# Add a non-root user
+RUN addgroup -S app && adduser -S app -G app
+USER app
 
-# Install serve for production serving
-RUN npm install -g serve pnpm
+WORKDIR /usr/share/nginx/html
+
+# Remove default Nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy custom Nginx config
+COPY nginx.conf /etc/nginx/conf.d
 
 # Copy built application
-COPY --from=build /app/dist ./dist
-COPY package*.json ./
-
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
+COPY --from=build /app/dist .
 
 # Expose port
-EXPOSE 5173
+EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5173 || exit 1
+    CMD wget -q --spider http://localhost/ || exit 1
 
-# Serve the application
-CMD ["serve", "-s", "dist", "-l", "5173"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

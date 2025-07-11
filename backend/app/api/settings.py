@@ -1,239 +1,149 @@
 # System settings API for configuring data collection intervals, LLM backend selection, data retention policies, and InfluxDB connection parameters with validation.
 
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any, Optional
+from fastapi import APIRouter, HTTPException, Depends, status
+from typing import Dict, Any, Optional, List
 from pydantic import BaseModel, Field
-import json
 from pathlib import Path
+import asyncio
+import aiohttp
+from dotenv import dotenv_values, set_key
 
 from app.core.config import settings
+from app.llm.local_service import LocalLLMService
+from app.llm.openai_service import OpenAILLMService
 
 router = APIRouter()
 
 class SettingsUpdate(BaseModel):
-    """Model for settings update requests."""
-    collection_interval: Optional[int] = Field(None, ge=10, le=3600, description="Collection interval in seconds (10-3600)")
-    data_retention_weeks: Optional[int] = Field(None, ge=1, le=52, description="Data retention in weeks (1-52)")
-    llm_backend: Optional[str] = Field(None, pattern="^(local|openai)$", description="LLM backend: local or openai")
-    local_llm_url: Optional[str] = Field(None, description="Local LLM service URL")
-    openai_api_key: Optional[str] = Field(None, description="OpenAI API key")
-    influx_url: Optional[str] = Field(None, description="InfluxDB connection URL")
-    influx_token: Optional[str] = Field(None, description="InfluxDB authentication token")
-    influx_org: Optional[str] = Field(None, description="InfluxDB organization")
-    influx_bucket: Optional[str] = Field(None, description="InfluxDB bucket name")
+    """Model for settings update requests with validation."""
+    collection_interval: Optional[int] = Field(None, ge=10, le=3600)
+    data_retention_weeks: Optional[int] = Field(None, ge=1, le=52)
+    llm_backend: Optional[str] = Field(None, pattern="^(local|openai)$")
+    local_llm_url: Optional[str] = Field(None)
+    openai_api_key: Optional[str] = Field(None)
+    influx_url: Optional[str] = Field(None)
+    influx_token: Optional[str] = Field(None)
+    influx_org: Optional[str] = Field(None)
+    influx_bucket: Optional[str] = Field(None)
 
-@router.get("/")
-async def get_settings():
-    """Get current system configuration settings."""
+def get_settings_response() -> Dict[str, Any]:
+    """Constructs the settings response dictionary."""
     return {
         "data_collection": {
             "collection_interval": settings.collection_interval,
             "data_retention_weeks": settings.data_retention_weeks,
-            "data_dir": settings.data_dir
+            "data_dir": settings.data_dir,
         },
         "llm_configuration": {
             "backend": settings.llm_backend,
             "local_url": settings.local_llm_url,
-            "openai_configured": bool(settings.openai_api_key)
+            "openai_configured": bool(settings.openai_api_key),
         },
         "database": {
             "influx_url": settings.influx_url,
             "influx_org": settings.influx_org,
             "influx_bucket": settings.influx_bucket,
-            "influx_configured": bool(settings.influx_token)
+            "influx_configured": bool(settings.influx_token),
         },
         "system": {
             "debug": settings.debug,
-            "cors_origins": settings.cors_origins
-        }
+            "cors_origins": settings.cors_origins,
+        },
     }
 
-@router.put("/")
+@router.get("/", response_model=Dict[str, Any])
+async def get_settings():
+    """Get current system configuration settings."""
+    return get_settings_response()
+
+@router.put("/", response_model=Dict[str, Any])
 async def update_settings(updates: SettingsUpdate):
-    """Update system configuration settings."""
+    """Update system configuration settings and save to .env file."""
     updated_fields = []
-    
-    # Update settings object
-    for field, value in updates.dict(exclude_unset=True).items():
-        if hasattr(settings, field) and value is not None:
-            setattr(settings, field, value)
-            updated_fields.append(field)
-    
-    # Save to environment file if it exists
     env_file = Path(".env")
-    if env_file.exists():
-        try:
-            # Read existing .env
-            env_content = {}
-            with open(env_file, 'r') as f:
-                for line in f:
-                    if '=' in line and not line.strip().startswith('#'):
-                        key, value = line.strip().split('=', 1)
-                        env_content[key] = value
-            
-            # Update with new values
-            field_mapping = {
-                "collection_interval": "COLLECTION_INTERVAL",
-                "data_retention_weeks": "DATA_RETENTION_WEEKS",
-                "llm_backend": "LLM_BACKEND",
-                "local_llm_url": "LOCAL_LLM_URL",
-                "openai_api_key": "OPENAI_API_KEY",
-                "influx_url": "INFLUX_URL",
-                "influx_token": "INFLUX_TOKEN",
-                "influx_org": "INFLUX_ORG",
-                "influx_bucket": "INFLUX_BUCKET"
-            }
-            
-            for field in updated_fields:
-                if field in field_mapping:
-                    env_key = field_mapping[field]
-                    env_content[env_key] = str(getattr(settings, field))
-            
-            # Write back to .env
-            with open(env_file, 'w') as f:
-                for key, value in env_content.items():
-                    f.write(f"{key}={value}\n")
-                    
-        except Exception as e:
-            # Continue even if .env update fails
-            pass
-    
+
+    update_data = updates.dict(exclude_unset=True)
+
+    for field, value in update_data.items():
+        if hasattr(settings, field):
+            setattr(settings, field, value)
+            # Use set_key to update the .env file
+            set_key(str(env_file), field.upper(), str(value))
+            updated_fields.append(field)
+
+    if not updated_fields:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No valid settings provided for update.")
+
     return {
-        "message": f"Updated {len(updated_fields)} settings",
+        "message": f"Updated {len(updated_fields)} settings.",
         "updated_fields": updated_fields,
-        "current_settings": await get_settings()
+        "current_settings": get_settings_response(),
     }
 
-@router.post("/test-connection")
-async def test_connections():
-    """Test connectivity to external services (InfluxDB, LLM)."""
-    results = {}
-    
-    # Test InfluxDB connection
+async def test_influxdb_connection() -> Dict[str, Any]:
+    """Test connectivity to InfluxDB."""
     try:
-        from influxdb_client import InfluxDBClient
-        with InfluxDBClient(
-            url=settings.influx_url,
-            token=settings.influx_token,
-            org=settings.influx_org
+        from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
+        async with InfluxDBClientAsync(
+            url=settings.influx_url, token=settings.influx_token, org=settings.influx_org
         ) as client:
-            health = client.health()
-            results["influxdb"] = {
-                "status": "connected" if health.status == "pass" else "failed",
-                "message": health.message or "Connection successful",
-                "version": health.version or "unknown"
-            }
+            health = await client.health()
+            if health.status == "pass":
+                return {"status": "connected", "message": health.message, "version": health.version}
+            return {"status": "failed", "message": health.message}
     except Exception as e:
-        results["influxdb"] = {
-            "status": "failed",
-            "message": str(e)
-        }
-    
-    # Test LLM service
+        return {"status": "failed", "message": str(e)}
+
+async def test_llm_connection() -> Dict[str, Any]:
+    """Test connectivity to the configured LLM service."""
     try:
         if settings.llm_backend == "openai":
-            import openai
-            openai.api_key = settings.openai_api_key
-            # Simple test to verify API key
-            models = openai.Model.list()
-            results["llm"] = {
-                "status": "connected",
-                "backend": "openai",
-                "message": f"Connected with access to {len(models.data)} models"
-            }
+            service = OpenAILLMService(api_key=settings.openai_api_key)
         else:
-            # Test local LLM service
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{settings.local_llm_url}/api/version") as response:
-                    if response.status == 200:
-                        results["llm"] = {
-                            "status": "connected",
-                            "backend": "local",
-                            "message": "Local LLM service responding"
-                        }
-                    else:
-                        results["llm"] = {
-                            "status": "failed",
-                            "backend": "local",
-                            "message": f"HTTP {response.status}"
-                        }
+            service = LocalLLMService(base_url=settings.local_llm_url)
+        
+        if await service.check_availability():
+            return {"status": "connected", "backend": settings.llm_backend}
+        return {"status": "failed", "backend": settings.llm_backend, "message": "Service is not available."}
     except Exception as e:
-        results["llm"] = {
-            "status": "failed",
-            "backend": settings.llm_backend,
-            "message": str(e)
-        }
-    
-    return {"connection_tests": results}
+        return {"status": "failed", "backend": settings.llm_backend, "message": str(e)}
 
-@router.get("/metrics")
+@router.post("/test-connections", status_code=status.HTTP_200_OK)
+async def test_connections():
+    """Test connectivity to external services (InfluxDB, LLM) concurrently."""
+    results = await asyncio.gather(test_influxdb_connection(), test_llm_connection())
+    return {"connection_tests": {"influxdb": results[0], "llm": results[1]}}
+
+@router.get("/metrics", response_model=Dict[str, List[Dict[str, str]]])
 async def get_available_metrics():
-    """Get list of available sensor metrics from InfluxDB."""
-    try:
-        # This would query InfluxDB for available fields
-        # For demo, return static list
-        return {
-            "metrics": [
-                {
-                    "name": "temperature",
-                    "unit": "°C",
-                    "type": "float",
-                    "description": "Ambient temperature sensor"
-                },
-                {
-                    "name": "humidity",
-                    "unit": "%",
-                    "type": "float",
-                    "description": "Relative humidity sensor"
-                },
-                {
-                    "name": "co2",
-                    "unit": "ppm",
-                    "type": "float",
-                    "description": "Carbon dioxide concentration"
-                },
-                {
-                    "name": "aqi",
-                    "unit": "index",
-                    "type": "integer",
-                    "description": "Air quality index"
-                },
-                {
-                    "name": "pressure",
-                    "unit": "hPa",
-                    "type": "float",
-                    "description": "Atmospheric pressure"
-                },
-                {
-                    "name": "light_level",
-                    "unit": "lux",
-                    "type": "float",
-                    "description": "Ambient light level"
-                }
-            ]
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch metrics: {str(e)}")
-
-@router.post("/reset")
-async def reset_settings():
-    """Reset all settings to default values."""
-    # Reset to defaults (this would typically reload from defaults)
-    default_values = {
-        "collection_interval": 30,
-        "data_retention_weeks": 4,
-        "llm_backend": "local",
-        "local_llm_url": "http://localhost:11434",
-        "influx_url": "http://localhost:8086",
-        "influx_org": "ides",
-        "influx_bucket": "sensors"
-    }
-    
-    for field, value in default_values.items():
-        setattr(settings, field, value)
-    
+    """Get list of available sensor metrics."""
+    # In a real application, this could be dynamic based on data
     return {
-        "message": "Settings reset to defaults",
-        "current_settings": await get_settings()
+        "metrics": [
+            {"name": "temperature", "unit": "°C", "description": "Ambient temperature"},
+            {"name": "humidity", "unit": "%", "description": "Relative humidity"},
+            {"name": "co2", "unit": "ppm", "description": "Carbon dioxide concentration"},
+            {"name": "aqi", "unit": "index", "description": "Air quality index"},
+            {"name": "pressure", "unit": "hPa", "description": "Atmospheric pressure"},
+            {"name": "light_level", "unit": "lux", "description": "Ambient light level"},
+        ]
+    }
+
+@router.post("/reset", status_code=status.HTTP_200_OK)
+async def reset_settings():
+    """Reset all settings to their default values."""
+    # This assumes default values are defined in the Settings class
+    # Re-initializing the settings object will load defaults
+    settings.__init__()
+    
+    # Persist default values to .env
+    env_file = Path(".env")
+    default_settings = SettingsUpdate(**settings.dict())
+    for field, value in default_settings.dict(exclude_unset=True).items():
+         if value is not None:
+            set_key(str(env_file), field.upper(), str(value))
+
+    return {
+        "message": "Settings have been reset to their default values.",
+        "current_settings": get_settings_response(),
     }

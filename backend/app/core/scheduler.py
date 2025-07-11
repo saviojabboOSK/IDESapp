@@ -3,10 +3,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
-import asyncio
 import logging
-from datetime import datetime
-
 from app.workers.influx import InfluxWorker
 from app.workers.forecasting import ForecastingWorker
 from app.workers.purge import PurgeWorker
@@ -15,89 +12,88 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Global scheduler instance
-scheduler = None
+scheduler = AsyncIOScheduler()
 
-async def start_scheduler():
-    """Initialize and start the background task scheduler."""
-    global scheduler
-    
-    if scheduler is not None:
-        logger.warning("Scheduler already running")
-        return
-    
-    scheduler = AsyncIOScheduler()
-    
+def setup_scheduler_jobs():
+    """Configure and add all recurring jobs to the scheduler."""
     # Initialize workers
     influx_worker = InfluxWorker()
     forecast_worker = ForecastingWorker()
     purge_worker = PurgeWorker()
     weather_worker = ExternalWeatherWorker()
-    
-    # Schedule sensor data collection every 30 seconds
+
+    # Schedule sensor data collection
     scheduler.add_job(
         influx_worker.collect_sensor_data,
         trigger=IntervalTrigger(seconds=settings.collection_interval),
         id="sensor_collection",
         name="Sensor Data Collection",
-        replace_existing=True
+        replace_existing=True,
+        misfire_grace_time=60  # Allow job to run up to 60s late
     )
-    
-    # Schedule forecasting every hour
+
+    # Schedule forecasting
     scheduler.add_job(
         forecast_worker.generate_forecasts,
         trigger=IntervalTrigger(hours=1),
         id="forecasting",
         name="Generate Forecasts",
-        replace_existing=True
+        replace_existing=True,
+        misfire_grace_time=300 # 5 minutes
     )
-    
-    # Schedule data purging daily at 2 AM
+
+    # Schedule data purging
     scheduler.add_job(
         purge_worker.purge_old_data,
         trigger=CronTrigger(hour=2, minute=0),
         id="data_purge",
         name="Data Purge",
-        replace_existing=True
+        replace_existing=True,
+        misfire_grace_time=600 # 10 minutes
     )
-    
-    # Schedule external weather data collection every 15 minutes
+
+    # Schedule external weather data collection
     scheduler.add_job(
         weather_worker.fetch_weather_data,
         trigger=IntervalTrigger(minutes=15),
         id="weather_collection",
         name="External Weather Collection",
-        replace_existing=True
+        replace_existing=True,
+        misfire_grace_time=120 # 2 minutes
     )
-    
-    scheduler.start()
-    logger.info("Background scheduler started with all workers")
+
+async def start_scheduler():
+    """Initialize and start the background task scheduler."""
+    if not scheduler.running:
+        setup_scheduler_jobs()
+        scheduler.start()
+        logger.info("Background scheduler started with all workers")
+    else:
+        logger.warning("Scheduler already running")
 
 async def stop_scheduler():
     """Stop the background task scheduler."""
-    global scheduler
-    
-    if scheduler is not None:
+    if scheduler.running:
         scheduler.shutdown(wait=True)
-        scheduler = None
         logger.info("Background scheduler stopped")
 
 def get_scheduler_status():
     """Get current scheduler and job status."""
-    if scheduler is None:
+    if not scheduler.running:
         return {"status": "stopped", "jobs": []}
-    
-    jobs = []
-    for job in scheduler.get_jobs():
-        jobs.append({
+
+    jobs = [
+        {
             "id": job.id,
             "name": job.name,
             "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
-            "trigger": str(job.trigger)
-        })
-    
+            "trigger": str(job.trigger),
+        }
+        for job in scheduler.get_jobs()
+    ]
+
     return {
         "status": "running",
         "jobs": jobs,
-        "timezone": str(scheduler.timezone)
+        "timezone": str(scheduler.timezone),
     }
