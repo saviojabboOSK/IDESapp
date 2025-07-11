@@ -1,8 +1,11 @@
 # Abstract base class for Large Language Model services providing a unified interface for both local and cloud-based AI services with common methods for sensor data analysis.
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, List
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 class LLMService(ABC):
     """Abstract base class for LLM services."""
@@ -22,32 +25,32 @@ class LLMService(ABC):
         """Check if LLM service is available and responding."""
         pass
     
+    async def _safe_generate(self, builder, *args, **kwargs) -> Dict[str, Any]:
+        """Wrapper for safe prompt generation and response handling."""
+        try:
+            if not self.is_available:
+                await self.check_availability()
+            if not self.is_available:
+                return {"error": "LLM service is unavailable", "status": "error"}
+
+            prompt = builder(*args)
+            response = await self.generate_response(prompt, **kwargs)
+            return {"response": response, "status": "success"}
+        except Exception as e:
+            logger.error(f"LLM generation failed: {e}", exc_info=True)
+            return {"error": f"LLM interaction failed: {str(e)}", "status": "error"}
+
     async def analyze_sensor_data(self, data: Dict[str, Any], query: str) -> Dict[str, Any]:
         """Analyze sensor data and provide insights."""
-        try:
-            analysis_prompt = self._build_analysis_prompt(data, query)
-            response = await self.generate_response(analysis_prompt)
-            return {"analysis": response, "status": "success"}
-        except Exception as e:
-            return {"analysis": f"Analysis failed: {str(e)}", "status": "error"}
+        return await self._safe_generate(self._build_analysis_prompt, data, query)
     
     async def suggest_chart_config(self, query: str, available_metrics: List[str]) -> Dict[str, Any]:
         """Suggest chart configuration based on user query."""
-        try:
-            config_prompt = self._build_chart_config_prompt(query, available_metrics)
-            response = await self.generate_response(config_prompt)
-            return {"config": response, "status": "success"}
-        except Exception as e:
-            return {"config": f"Config suggestion failed: {str(e)}", "status": "error"}
+        return await self._safe_generate(self._build_chart_config_prompt, query, available_metrics)
     
     async def generate_forecast_insights(self, metric: str, historical_data: List[float]) -> Dict[str, Any]:
         """Generate insights about forecast data."""
-        try:
-            forecast_prompt = self._build_forecast_prompt(metric, historical_data)
-            response = await self.generate_response(forecast_prompt)
-            return {"insights": response, "status": "success"}
-        except Exception as e:
-            return {"insights": f"Forecast insights failed: {str(e)}", "status": "error"}
+        return await self._safe_generate(self._build_forecast_prompt, metric, historical_data)
     
     def _build_analysis_prompt(self, data: Dict[str, Any], query: str) -> str:
         """Build prompt for sensor data analysis."""
@@ -107,21 +110,22 @@ Keep the response practical and actionable.
             if isinstance(values, list) and values:
                 if metric == "timestamps":
                     continue
-                latest = values[-1] if values else "N/A"
-                avg = sum(values) / len(values) if values else 0
+                latest = values[-1]
+                avg = sum(values) / len(values)
                 formatted.append(f"{metric}: {latest} (avg: {avg:.2f})")
         return "\n".join(formatted)
     
     async def health_check(self) -> Dict[str, Any]:
         """Check service health and return status."""
         try:
-            available = await self.check_availability()
+            self.is_available = await self.check_availability()
             return {
                 "service": self.__class__.__name__,
-                "status": "healthy" if available else "unavailable",
+                "status": "healthy" if self.is_available else "unavailable",
                 "config": {k: v for k, v in self.config.items() if "key" not in k.lower()}
             }
         except Exception as e:
+            logger.error(f"LLM health check for {self.__class__.__name__} failed: {e}", exc_info=True)
             return {
                 "service": self.__class__.__name__,
                 "status": "error",

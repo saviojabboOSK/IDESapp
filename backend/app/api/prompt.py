@@ -1,100 +1,67 @@
 # AI-powered natural language processing endpoint that interprets user queries about sensor data and generates appropriate chart configurations or insights using local or OpenAI LLM services.
 
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any, Optional
-from datetime import datetime, timedelta
+from fastapi import APIRouter, HTTPException, Depends, status
+from typing import Dict, Any, Optional, List
+from datetime import datetime
 import json
 import asyncio
+from functools import lru_cache
+from pathlib import Path
 
 from app.llm.base import LLMService
 from app.llm.local_service import LocalLLMService
 from app.llm.openai_service import OpenAILLMService
 from app.core.config import settings
-from app.models.graph import GraphModel
+from app.models.graph import GraphModel, GraphSettings, GraphLayout
+from app.api.graphs import save_graph_to_file as save_graph_file
 
 router = APIRouter()
 
-# LLM service instance
-llm_service: Optional[LLMService] = None
-
+@lru_cache(maxsize=1)
 def get_llm_service() -> LLMService:
-    """Get configured LLM service instance."""
-    global llm_service
-    
-    if llm_service is None:
-        if settings.llm_backend == "openai" and settings.openai_api_key:
-            llm_service = OpenAILLMService(api_key=settings.openai_api_key)
-        else:
-            llm_service = LocalLLMService(base_url=settings.local_llm_url)
-    
-    return llm_service
+    """Get configured LLM service instance, cached for performance."""
+    if settings.llm_backend == "openai" and settings.openai_api_key:
+        return OpenAILLMService(api_key=settings.openai_api_key)
+    return LocalLLMService(base_url=settings.local_llm_url)
 
-def get_recent_sensor_context() -> Dict[str, Any]:
-    """Get recent sensor data for LLM context."""
-    try:
-        from pathlib import Path
-        data_dir = Path(settings.data_dir)
-        
-        # Find most recent data file
-        latest_file = None
-        for file_path in data_dir.glob("sensors_*.json"):
-            if latest_file is None or file_path.stat().st_mtime > latest_file.stat().st_mtime:
-                latest_file = file_path
-        
-        if latest_file and latest_file.exists():
-            with open(latest_file, 'r') as f:
-                data = json.load(f)
-                
-                # Get last 10 data points for context
-                context = {}
-                for key, values in data.items():
-                    if isinstance(values, list) and values:
-                        context[key] = values[-10:]  # Last 10 readings
-                
-                return context
-    except Exception:
-        pass
-    
-    # Return dummy data if no real data available
-    return {
-        "timestamps": [datetime.now().isoformat()],
-        "temperature": [22.5],
-        "humidity": [45.2],
-        "co2": [420],
-        "aqi": [35]
-    }
-
-@router.post("/")
-async def process_prompt(request: Dict[str, str]):
-    """Process natural language prompt and return AI response with optional chart configuration."""
-    user_prompt = request.get("prompt", "").strip()
-    
-    if not user_prompt:
-        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+async def get_recent_sensor_context() -> Dict[str, Any]:
+    """Asynchronously get recent sensor data for LLM context."""
+    data_dir = Path(settings.data_dir)
     
     try:
-        # Get LLM service
-        llm = get_llm_service()
+        files = list(data_dir.glob("sensors_*.json"))
+        if not files:
+            return {}
         
-        # Get recent sensor data for context
-        sensor_context = get_recent_sensor_context()
+        latest_file = max(files, key=lambda f: f.stat().st_mtime)
         
-        # Create enhanced prompt with context
-        enhanced_prompt = f"""
-User query: {user_prompt}
+        with open(latest_file, 'r') as f:
+            data = json.load(f)
+        
+        return {key: values[-10:] for key, values in data.items() if isinstance(values, list) and values}
+    except (IOError, json.JSONDecodeError, ValueError) as e:
+        print(f"Could not read sensor context: {e}")
+        return {}
+
+def build_enhanced_prompt(user_prompt: str, context: Dict[str, Any], metrics: List[str]) -> str:
+    """Build a detailed prompt for the LLM."""
+    context_summary = "\n".join(
+        f"- {key.capitalize()}: {values[-1] if values else 'N/A'}"
+        for key, values in context.items()
+    )
+    
+    return f"""
+User query: "{user_prompt}"
 
 Current sensor data context (last readings):
-Temperature: {sensor_context.get('temperature', [])[-1] if sensor_context.get('temperature') else 'N/A'}°C
-Humidity: {sensor_context.get('humidity', [])[-1] if sensor_context.get('humidity') else 'N/A'}%
-CO₂: {sensor_context.get('co2', [])[-1] if sensor_context.get('co2') else 'N/A'} ppm
-Air Quality Index: {sensor_context.get('aqi', [])[-1] if sensor_context.get('aqi') else 'N/A'}
+{context_summary}
 
-Available metrics: temperature, humidity, co2, aqi, pressure, light_level
+Available metrics: {', '.join(metrics)}
 
 Please respond with a JSON object containing:
-1. "response": A natural language answer to the user's question
-2. "chart_config": (optional) If a chart would be helpful, include chart configuration
-3. "insights": (optional) Any notable patterns or recommendations
+1. "response": A natural language answer to the user's question.
+2. "chart_config": (optional) If a chart would be helpful, include a valid chart configuration.
+3. "insights": (optional) Any notable patterns or recommendations.
 
 Chart config format (if applicable):
 {{
@@ -104,106 +71,97 @@ Chart config format (if applicable):
   "title": "Chart Title"
 }}
 """
+
+async def create_ai_graph(chart_config: Dict[str, Any]) -> Optional[GraphModel]:
+    """Create and save a graph model from AI-generated config."""
+    try:
+        graph = GraphModel(
+            id=f"ai-generated-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}",
+            title=chart_config.get("title", "AI Generated Chart"),
+            chart_type=chart_config.get("chart_type", "line"),
+            metrics=chart_config.get("metrics", ["temperature"]),
+            time_range=chart_config.get("time_range", "24h"),
+            is_ai_generated=True,
+            settings=GraphSettings(),
+            layout=GraphLayout(x=0, y=0, width=8, height=4)
+        )
+        await save_graph_file(graph)
+        return graph
+    except Exception as e:
+        print(f"Error creating AI graph: {e}")
+        return None
+
+@router.post("/", status_code=status.HTTP_200_OK)
+async def process_prompt(request: Dict[str, str], llm: LLMService = Depends(get_llm_service)):
+    """Process natural language prompt and return AI response with optional chart configuration."""
+    user_prompt = request.get("prompt", "").strip()
+    if not user_prompt:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Prompt cannot be empty")
+
+    try:
+        metrics_info = await get_available_metrics()
+        available_metrics = [m['name'] for m in metrics_info['metrics']]
+        sensor_context = await get_recent_sensor_context()
         
-        # Get AI response
-        ai_response = await llm.generate_response(enhanced_prompt)
+        enhanced_prompt = build_enhanced_prompt(user_prompt, sensor_context, available_metrics)
         
-        # Parse JSON response
+        ai_response_str = await llm.generate_response(enhanced_prompt)
+        
         try:
-            parsed_response = json.loads(ai_response)
+            ai_response = json.loads(ai_response_str)
         except json.JSONDecodeError:
-            # Fallback if LLM doesn't return valid JSON
-            parsed_response = {
-                "response": ai_response,
-                "chart_config": None,
-                "insights": None
-            }
-        
-        # If chart config is provided, create a temporary graph
+            ai_response = {"response": ai_response_str}
+
         chart_data = None
-        if parsed_response.get("chart_config"):
-            from app.api.graphs import save_graph_to_file
-            from app.models.graph import GraphSettings, GraphLayout
-            
-            chart_config = parsed_response["chart_config"]
-            
-            # Create a proper GraphModel instance
-            graph_model = GraphModel(
-                id=f"ai-generated-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-                title=chart_config.get("title", "AI Generated Chart"),
-                chart_type=chart_config.get("chart_type", "line"),
-                metrics=chart_config.get("metrics", ["temperature"]),
-                time_range=chart_config.get("time_range", "24h"),
-                is_ai_generated=True,
-                settings=GraphSettings(
-                    color_scheme=["#3b82f6", "#ef4444", "#22c55e", "#f59e0b"],
-                    show_legend=True,
-                    show_grid=True
-                ),
-                layout=GraphLayout(x=0, y=0, width=6, height=4)
-            )
-            
-            # Save the graph to file
-            save_graph_to_file(graph_model)
-            chart_data = graph_model.dict()
-        
+        if chart_config := ai_response.get("chart_config"):
+            if graph_model := await create_ai_graph(chart_config):
+                chart_data = graph_model.dict()
+
         return {
-            "response": parsed_response.get("response", "I understand your query about the sensor data."),
+            "response": ai_response.get("response", "Could not generate a response."),
             "chart_config": chart_data,
-            "insights": parsed_response.get("insights"),
-            "timestamp": datetime.now().isoformat(),
-            "llm_backend": settings.llm_backend
+            "insights": ai_response.get("insights"),
+            "timestamp": datetime.utcnow().isoformat(),
+            "llm_backend": settings.llm_backend,
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process prompt: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to process prompt: {str(e)}")
 
-@router.post("/forecast")
-async def generate_forecast_prompt(request: Dict[str, Any]):
+@router.post("/forecast", status_code=status.HTTP_200_OK)
+async def generate_forecast_prompt(request: Dict[str, Any], llm: LLMService = Depends(get_llm_service)):
     """Generate forecast-specific AI insights for sensor predictions."""
     metric = request.get("metric", "temperature")
     days_ahead = request.get("days", 7)
     
     try:
-        llm = get_llm_service()
-        sensor_context = get_recent_sensor_context()
-        
-        # Get recent values for the requested metric
+        sensor_context = await get_recent_sensor_context()
         recent_values = sensor_context.get(metric, [])
         
         forecast_prompt = f"""
 Analyze the recent {metric} readings and provide a forecast for the next {days_ahead} days.
-
-Recent {metric} values: {recent_values}
-
-Please provide:
-1. Trend analysis of recent readings
-2. Predicted values for the next {days_ahead} days
-3. Confidence level in the prediction
-4. Any notable patterns or anomalies
-5. Recommendations based on the forecast
-
-Respond in JSON format with structured forecast data.
+Recent values: {recent_values}
+Respond in JSON with trend analysis, predicted values, confidence, and recommendations.
 """
         
-        ai_response = await llm.generate_response(forecast_prompt)
+        ai_response_str = await llm.generate_response(forecast_prompt)
         
         try:
-            forecast_data = json.loads(ai_response)
+            forecast_data = json.loads(ai_response_str)
         except json.JSONDecodeError:
-            forecast_data = {"forecast": ai_response}
+            forecast_data = {"forecast": ai_response_str}
         
         return {
             "metric": metric,
             "forecast": forecast_data,
-            "timestamp": datetime.now().isoformat(),
-            "days_ahead": days_ahead
+            "timestamp": datetime.utcnow().isoformat(),
+            "days_ahead": days_ahead,
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate forecast: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to generate forecast: {str(e)}")
 
-@router.get("/available-metrics")
+@router.get("/available-metrics", response_model=Dict[str, List[Dict[str, str]]])
 async def get_available_metrics():
     """Get list of available sensor metrics for AI query context."""
     return {

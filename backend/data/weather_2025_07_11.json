@@ -174,7 +174,32 @@
           }
         ]
       }
+    },
+    {
+      "timestamp": "2025-07-11T17:43:32.305478",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 22.8,
+        "humidity": 60.8,
+        "pressure": 1013.66,
+        "condition": "Rain"
+      }
+    },
+    {
+      "timestamp": "2025-07-11T17:59:16.925993",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 21.2,
+        "humidity": 82.7,
+        "pressure": 1022.44,
+        "condition": "Clouds"
+      }
     }
-  ],
-  "last_updated": "2025-07-11T09:37:42.732690"
+  ]
 }
