@@ -1,0 +1,41 @@
+{
+  "id": "f3558122-56f5-4984-89ff-4f6746202ddf",
+  "title": "Air Quality",
+  "chart_type": "line",
+  "metrics": [
+    "aqi",
+    "temperature",
+    "co2"
+  ],
+  "time_range": "24h",
+  "settings": {
+    "color_scheme": [
+      "#ef4444",
+      "#3b82f6",
+      "#22c55e",
+      "#f59e0b",
+      "#8b5cf6",
+      "#eab308"
+    ],
+    "show_legend": true,
+    "show_grid": true,
+    "animate": true,
+    "smooth_lines": true,
+    "fill_area": true,
+    "show_points": false,
+    "y_axis_min": null,
+    "y_axis_max": null
+  },
+  "layout": {
+    "x": 0,
+    "y": 0,
+    "width": 6,
+    "height": 5
+  },
+  "data": null,
+  "created_at": "2025-07-11 11:33:36.503147",
+  "updated_at": "2025-07-11 18:17:55.700448",
+  "is_ai_generated": false,
+  "auto_refresh": true,
+  "refresh_interval": 30
+}
