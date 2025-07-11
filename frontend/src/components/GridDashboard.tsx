@@ -6,6 +6,7 @@ import { Plus, RefreshCw, MessageSquare, Grid } from 'lucide-react'
 import DraggableGraphCard from './DraggableGraphCard'
 import PromptInput from './PromptInput'
 import GraphBuilderModal from './GraphBuilderModal'
+import GraphSettingsModal from './GraphSettingsModal'
 import 'react-grid-layout/css/styles.css'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
@@ -58,6 +59,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
   const [showGraphBuilder, setShowGraphBuilder] = useState(false)
   const [graphData, setGraphData] = useState<GraphData>({})
   const [refreshing, setRefreshing] = useState(false)
+  const [editingGraph, setEditingGraph] = useState<GraphConfig | null>(null)
 
   // Load graphs from backend
   const loadGraphs = useCallback(async () => {
@@ -207,23 +209,19 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
       })
 
       if (response.ok) {
+        const updatedGraph = await response.json()
         // Update local state
         setGraphs(prev => prev.map(graph => 
-          graph.id === id ? { ...graph, ...updates } : graph
+          graph.id === id ? updatedGraph : graph
         ))
         
-        // Reload data if metrics or time range changed
-        if (updates.metrics || updates.time_range) {
-          const updatedGraph = graphs.find(g => g.id === id)
-          if (updatedGraph) {
-            await loadAllGraphData([{ ...updatedGraph, ...updates } as GraphConfig])
-          }
-        }
+        await loadAllGraphData(graphs)
+        setEditingGraph(null)
       }
     } catch (error) {
       console.error('Failed to update graph:', error)
     }
-  }, [graphs, loadAllGraphData])
+  }, [loadAllGraphData, graphs])
 
   // Delete graph
   const handleDeleteGraph = useCallback(async (id: string) => {
@@ -396,12 +394,25 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
           isDraggable={true}
           isResizable={true}
           draggableHandle=".drag-handle"
+          onResizeStop={(_, __, newItem) => {
+            const graph = graphs.find(g => g.id === newItem.i);
+            if (graph) {
+              const updates = {
+                layout: {
+                  ...graph.layout,
+                  width: newItem.w,
+                  height: newItem.h,
+                }
+              };
+              handleUpdateGraph(graph.id, updates);
+            }
+          }}
         >
           {graphs.map((graph) => (
             <div key={graph.id}>
               <DraggableGraphCard
                 config={graph}
-                onUpdate={handleUpdateGraph}
+                onEdit={() => setEditingGraph(graph)}
                 onDelete={handleDeleteGraph}
                 data={graphData[graph.id]}
                 isLoading={refreshing}
@@ -440,6 +451,15 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
         onClose={() => setShowGraphBuilder(false)}
         onAIGenerate={handleAIGenerate}
       />
+      
+      {editingGraph && (
+        <GraphSettingsModal
+          graph={editingGraph}
+          isOpen={!!editingGraph}
+          onSave={(config) => handleUpdateGraph(config.id, config)}
+          onClose={() => setEditingGraph(null)}
+        />
+      )}
     </div>
   )
 }

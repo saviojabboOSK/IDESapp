@@ -1,10 +1,11 @@
 {
   "id": "72c2788e-23a3-40ad-89dd-08e3ccdeac8b",
   "title": "Temperature",
-  "chart_type": "line",
+  "chart_type": "area",
   "metrics": [
     "temperature",
-    "co2"
+    "co2",
+    "pressure"
   ],
   "time_range": "24h",
   "settings": {
@@ -18,22 +19,22 @@
     ],
     "show_legend": true,
     "show_grid": true,
-    "animate": false,
-    "smooth_lines": false,
+    "animate": true,
+    "smooth_lines": true,
     "fill_area": true,
-    "show_points": true,
+    "show_points": false,
     "y_axis_min": null,
     "y_axis_max": null
   },
   "layout": {
     "x": 0,
-    "y": 10,
-    "width": 12,
-    "height": 5
+    "y": 5,
+    "width": 9,
+    "height": 7
   },
   "data": null,
   "created_at": "2025-07-11 08:46:59.330959",
-  "updated_at": "2025-07-11 08:50:36.888078",
+  "updated_at": "2025-07-11 09:45:47.893211",
   "is_ai_generated": false,
   "auto_refresh": true,
   "refresh_interval": 30

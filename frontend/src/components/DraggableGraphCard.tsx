@@ -1,8 +1,7 @@
 // Enhanced draggable graph card component for IDES 2.0 with integrated settings panel, real-time data updates, and drag-and-drop functionality using react-grid-layout.
-import React, { useState, useCallback } from 'react'
+import React from 'react'
 import { Settings, X, BarChart3 } from 'lucide-react'
 import { Bar, Line, Scatter } from 'react-chartjs-2'
-import GraphSettingsModal from './GraphSettingsModal'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -64,7 +63,7 @@ interface GraphData {
 
 interface DraggableGraphCardProps {
   config: GraphConfig
-  onUpdate: (id: string, updates: Partial<GraphConfig>) => void
+  onEdit: () => void
   onDelete: (id: string) => void
   data?: GraphData
   isLoading?: boolean
@@ -81,21 +80,11 @@ const AVAILABLE_METRICS = [
 
 const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
   config,
-  onUpdate,
+  onEdit,
   onDelete,
   data,
   isLoading = false,
 }) => {
-  const [showSettingsModal, setShowSettingsModal] = useState(false)
-
-  const handleSaveSettings = useCallback(
-    (updates: Partial<GraphConfig>) => {
-      onUpdate(config.id, updates)
-      setShowSettingsModal(false)
-    },
-    [config.id, onUpdate],
-  )
-
   const handleDeleteClick = () => {
     if (window.confirm(`Are you sure you want to delete the graph "${config.title}"?`)) {
       onDelete(config.id)
@@ -170,14 +159,18 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
         ? Scatter
         : Line
     return (
-      <div className="h-full">
-        <ChartComponent data={chartData} options={chartOptions} />
+      <div className="h-full w-full">
+        <ChartComponent
+          key={`${config.layout.width}-${config.layout.height}`}
+          data={chartData}
+          options={chartOptions}
+        />
       </div>
     )
   }
 
   return (
-    <div className="graph-card bg-white rounded-lg shadow-md border border-gray-200 relative overflow-hidden h-full flex flex-col">
+    <div className="graph-card bg-white rounded-lg shadow-md border border-gray-200 relative h-full flex flex-col">
       {/* Main Card Content */}
       <div className="p-4 flex-1 flex flex-col">
         {/* Header */}
@@ -200,7 +193,7 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowSettingsModal(true);
+                onEdit();
               }}
               className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
               title="Settings"
@@ -220,7 +213,7 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
           </div>
         </div>
         {/* Chart Area */}
-        <div className="flex-1 min-h-0">{renderChart()}</div>
+        <div className="flex-1 min-h-0 w-full">{renderChart()}</div>
         {/* Footer Info */}
         <div className="mt-2 text-xs text-gray-500 flex items-center justify-between">
           <span>
@@ -229,15 +222,6 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
           <span>{config.time_range}</span>
         </div>
       </div>
-      {/* Settings Modal */}
-      {showSettingsModal && (
-        <GraphSettingsModal
-          config={config}
-          isOpen={showSettingsModal}
-          onSave={handleSaveSettings}
-          onClose={() => setShowSettingsModal(false)}
-        />
-      )}
     </div>
   )
 }
