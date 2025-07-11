@@ -1,33 +1,38 @@
 {
-  "id": "pressure",
-  "title": "Atmospheric Pressure",
-  "chart_type": "line",
+  "id": "9348eb0a-0c35-47a5-aee1-c2e24c4462f8",
+  "title": "Humidity",
+  "chart_type": "scatter",
   "metrics": [
-    "pressure"
+    "humidity",
+    "aqi",
+    "light_level"
   ],
   "time_range": "24h",
   "settings": {
     "color_scheme": [
-      "#8b5cf6"
+      "#1f2937",
+      "#374151",
+      "#6b7280",
+      "#9ca3af"
     ],
     "show_legend": true,
     "show_grid": true,
     "animate": true,
     "smooth_lines": true,
     "fill_area": false,
-    "show_points": false,
+    "show_points": true,
     "y_axis_min": null,
     "y_axis_max": null
   },
   "layout": {
     "x": 0,
-    "y": 12,
-    "width": 12,
+    "y": 4,
+    "width": 9,
     "height": 4
   },
   "data": null,
-  "created_at": "2025-07-10 10:57:40.047978",
-  "updated_at": "2025-07-10 13:33:26.285577",
+  "created_at": "2025-07-10 13:31:50.993327",
+  "updated_at": "2025-07-10 13:33:26.288178",
   "is_ai_generated": false,
   "auto_refresh": true,
   "refresh_interval": 30
