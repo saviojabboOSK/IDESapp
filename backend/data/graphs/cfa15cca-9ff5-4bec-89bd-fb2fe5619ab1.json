@@ -1,21 +1,18 @@
 {
-  "id": "light-level",
-  "title": "Light Level",
-  "chart_type": "bar",
+  "id": "cfa15cca-9ff5-4bec-89bd-fb2fe5619ab1",
+  "title": "Humidity",
+  "chart_type": "area",
   "metrics": [
-    "light_level",
     "humidity",
-    "co2"
+    "temperature"
   ],
-  "time_range": "6h",
+  "time_range": "24h",
   "settings": {
     "color_scheme": [
-      "#3b82f6",
-      "#ef4444",
-      "#22c55e",
-      "#f59e0b",
-      "#8b5cf6",
-      "#ec4899"
+      "#065f46",
+      "#047857",
+      "#059669",
+      "#10b981"
     ],
     "show_legend": true,
     "show_grid": true,
@@ -27,14 +24,14 @@
     "y_axis_max": null
   },
   "layout": {
-    "x": 6,
-    "y": 0,
+    "x": 0,
+    "y": 5,
     "width": 6,
-    "height": 9
+    "height": 4
   },
   "data": null,
-  "created_at": "2025-07-10 10:57:40.047981",
-  "updated_at": "2025-07-11 18:17:55.701658",
+  "created_at": "2025-07-14 08:30:41.436125",
+  "updated_at": "2025-07-14 13:33:32.502195",
   "is_ai_generated": false,
   "auto_refresh": true,
   "refresh_interval": 30
