@@ -60,10 +60,12 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
   const [graphData, setGraphData] = useState<GraphData>({})
   const [refreshing, setRefreshing] = useState(false)
   const [editingGraph, setEditingGraph] = useState<GraphConfig | null>(null)
+  const [dataLoading, setDataLoading] = useState(false)
 
   // Load graphs from backend
   const loadGraphs = useCallback(async () => {
     try {
+      setLoading(true)
       const response = await fetch('/api/graphs')
       if (response.ok) {
         const fetchedGraphs = await response.json()
@@ -83,8 +85,10 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
         }
         setLayouts(newLayouts)
         
-        // Load data for each graph
+        // Load data for each graph immediately after graphs are set
         await loadAllGraphData(fetchedGraphs)
+      } else {
+        console.error('Failed to fetch graphs:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Failed to load graphs:', error)
@@ -95,11 +99,32 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
 
   // Load data for all graphs
   const loadAllGraphData = useCallback(async (graphList: GraphConfig[]) => {
+    if (!graphList || graphList.length === 0) {
+      console.log('No graphs to load data for')
+      return
+    }
+
     const dataPromises = graphList.map(async (graph) => {
       try {
         const response = await fetch(`/api/graphs/${graph.id}/data?limit=100`)
         if (response.ok) {
           const result = await response.json()
+          
+          // Ensure we have valid data
+          if (!result.data || !Array.isArray(result.data)) {
+            console.warn(`No valid data returned for graph ${graph.id}`)
+            return {
+              graphId: graph.id,
+              data: {
+                labels: [],
+                data: graph.metrics.reduce((acc, metric) => {
+                  acc[metric] = []
+                  return acc
+                }, {} as { [metric: string]: number[] })
+              }
+            }
+          }
+
           return {
             graphId: graph.id,
             data: {
@@ -115,23 +140,51 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
               }, {} as { [metric: string]: number[] })
             }
           }
+        } else {
+          console.error(`Failed to load data for graph ${graph.id}:`, response.status, response.statusText)
+          // Return empty data structure on API failure
+          return {
+            graphId: graph.id,
+            data: {
+              labels: [],
+              data: graph.metrics.reduce((acc, metric) => {
+                acc[metric] = []
+                return acc
+              }, {} as { [metric: string]: number[] })
+            }
+          }
         }
       } catch (error) {
         console.error(`Failed to load data for graph ${graph.id}:`, error)
+        // Return empty data structure on error
+        return {
+          graphId: graph.id,
+          data: {
+            labels: [],
+            data: graph.metrics.reduce((acc, metric) => {
+              acc[metric] = []
+              return acc
+            }, {} as { [metric: string]: number[] })
+          }
+        }
       }
-      return null
     })
 
-    const results = await Promise.all(dataPromises)
-    const newGraphData: GraphData = {}
-    
-    results.forEach((result) => {
-      if (result) {
-        newGraphData[result.graphId] = result.data
-      }
-    })
-    
-    setGraphData(newGraphData)
+    try {
+      const results = await Promise.all(dataPromises)
+      const newGraphData: GraphData = {}
+      
+      results.forEach((result) => {
+        if (result) {
+          newGraphData[result.graphId] = result.data
+        }
+      })
+      
+      setGraphData(newGraphData)
+      console.log('Graph data loaded for', Object.keys(newGraphData).length, 'graphs')
+    } catch (error) {
+      console.error('Failed to load graph data:', error)
+    }
   }, [])
 
   // Handle layout change
@@ -304,10 +357,38 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
     }
   }, [lastUpdate, graphs, loadAllGraphData])
 
-  // Initial load
+  // Initial load with retry mechanism
   useEffect(() => {
-    loadGraphs()
+    const initializeApp = async () => {
+      let retries = 3
+      while (retries > 0) {
+        try {
+          await loadGraphs()
+          break // Success, exit retry loop
+        } catch (error) {
+          console.error('Failed to initialize app, retrying...', error)
+          retries--
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 2000)) // Wait 2s before retry
+          }
+        }
+      }
+    }
+    
+    initializeApp()
   }, [loadGraphs])
+
+  // Auto-refresh data every 30 seconds
+  useEffect(() => {
+    if (graphs.length === 0) return
+
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing graph data...')
+      loadAllGraphData(graphs)
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [graphs, loadAllGraphData])
 
   if (loading) {
     return (

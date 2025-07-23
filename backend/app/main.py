@@ -25,6 +25,17 @@ async def lifespan(app: FastAPI):
     print("🚀 Starting IDES 2.0 - Indoor Digital Environment System")
     await start_scheduler()
     print("📊 Background workers started for sensor data collection")
+    
+    # Trigger initial data collection to ensure graphs have data immediately
+    from app.workers.influx import InfluxWorker
+    influx_worker = InfluxWorker()
+    try:
+        print("🔄 Running initial sensor data collection...")
+        await influx_worker.collect_sensor_data()
+        print("✅ Initial data collection completed")
+    except Exception as e:
+        print(f"⚠️ Initial data collection failed: {e}")
+    
     yield
     # Shutdown
     print("🛑 Shutting down IDES 2.0")

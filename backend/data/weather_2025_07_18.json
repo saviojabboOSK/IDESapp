@@ -1,0 +1,355 @@
+{
+  "readings": [
+    {
+      "timestamp": "2025-07-18T02:31:30.162895",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 16.5,
+        "humidity": 88.8,
+        "pressure": 1013.07,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T02:46:30.814102",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 19.6,
+        "humidity": 87.3,
+        "pressure": 1006.52,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T03:01:30.297933",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 11.7,
+        "humidity": 55.7,
+        "pressure": 1015.92,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T03:32:25.439845",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 12.3,
+        "humidity": 63.7,
+        "pressure": 1007.76,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T03:46:30.194706",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 24.3,
+        "humidity": 46.6,
+        "pressure": 1004.12,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T04:01:30.313106",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 22.9,
+        "humidity": 65.9,
+        "pressure": 1018.42,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T04:16:30.203107",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 15.5,
+        "humidity": 77.0,
+        "pressure": 1021.59,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T04:31:30.203382",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 10.2,
+        "humidity": 60.7,
+        "pressure": 1010.06,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T04:46:30.203726",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 20.5,
+        "humidity": 61.1,
+        "pressure": 1007.73,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T05:01:30.317815",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 25.9,
+        "humidity": 44.2,
+        "pressure": 1008.52,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T05:46:30.201436",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 15.0,
+        "humidity": 67.5,
+        "pressure": 1013.17,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T06:01:30.344545",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 12.0,
+        "humidity": 44.6,
+        "pressure": 1013.11,
+        "condition": "Rain"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T06:31:30.207345",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 28.6,
+        "humidity": 61.5,
+        "pressure": 1019.95,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T06:46:30.210686",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 15.4,
+        "humidity": 54.6,
+        "pressure": 1012.07,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T07:01:30.356614",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 16.1,
+        "humidity": 45.9,
+        "pressure": 1003.57,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T07:46:30.213381",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 13.2,
+        "humidity": 56.6,
+        "pressure": 1015.52,
+        "condition": "Rain"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T08:01:30.362059",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 14.9,
+        "humidity": 43.9,
+        "pressure": 1009.72,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T08:31:30.223850",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 14.5,
+        "humidity": 65.3,
+        "pressure": 1010.85,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T09:01:30.374455",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 23.4,
+        "humidity": 67.9,
+        "pressure": 1018.42,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T09:31:30.243194",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 14.8,
+        "humidity": 88.6,
+        "pressure": 1006.03,
+        "condition": "Rain"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T09:46:30.234088",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 11.5,
+        "humidity": 86.1,
+        "pressure": 1012.5,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T10:01:30.388021",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 29.7,
+        "humidity": 60.0,
+        "pressure": 1008.18,
+        "condition": "Clouds"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T10:31:30.240944",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 24.9,
+        "humidity": 47.6,
+        "pressure": 1019.16,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T10:46:30.244454",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 17.5,
+        "humidity": 48.6,
+        "pressure": 1014.3,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T11:01:30.400770",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 12.3,
+        "humidity": 50.1,
+        "pressure": 1007.91,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T11:31:30.267077",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 13.8,
+        "humidity": 48.0,
+        "pressure": 1008.42,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-18T12:02:58.724577",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 17.6,
+        "humidity": 49.7,
+        "pressure": 1011.85,
+        "condition": "Clear"
+      }
+    }
+  ]
+}

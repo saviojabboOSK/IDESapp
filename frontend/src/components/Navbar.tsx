@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Settings, Activity, Wifi, WifiOff } from 'lucide-react'
+import { Home, Settings, Wifi, WifiOff } from 'lucide-react'
 
 interface NavbarProps {
   isConnected: boolean
@@ -17,15 +17,29 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Logo and main nav */}
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
-              <Activity className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">IDES 2.0</h1>
+        <div className="flex justify-between items-center h-16">
+          {/* Left side: Square logo + Horizontal logo + Navigation */}
+          <div className="flex items-center space-x-4">
+            {/* Square logo - far left */}
+            <div className="flex-shrink-0">
+              <img 
+                src="/assets/logo-square.png" 
+                alt="Square Logo" 
+                className="h-10 w-10 object-contain"
+              />
             </div>
             
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
+            {/* Horizontal rectangular logo - next to square */}
+            <div className="flex-shrink-0">
+              <img 
+                src="/assets/logo-horizontal.png" 
+                alt="Horizontal Logo" 
+                className="h-8 w-auto object-contain max-w-[120px]"
+              />
+            </div>
+
+            {/* Navigation menu */}
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link
                 to="/"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
@@ -52,7 +66,16 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
             </div>
           </div>
 
-          {/* Status indicators */}
+          {/* Center: Middle logo */}
+          <div className="flex-shrink-0 absolute left-1/2 transform -translate-x-1/2">
+            <img 
+              src="/assets/logo-middle.png" 
+              alt="Middle Logo" 
+              className="h-8 w-auto object-contain max-w-[100px]"
+            />
+          </div>
+
+          {/* Right side: Status indicators + Right logo */}
           <div className="flex items-center space-x-4">
             {/* WebSocket status */}
             <div className="flex items-center space-x-2">
@@ -77,6 +100,15 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
               }`} />
               {backendHealth ? 'Healthy' : 'Error'}
             </div>
+
+            {/* Right logo - far right */}
+            <div className="flex-shrink-0">
+              <img 
+                src="/assets/logo-right.png" 
+                alt="Right Logo" 
+                className="h-8 w-auto object-contain max-w-[100px]"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -84,6 +116,27 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
       {/* Mobile menu */}
       <div className="sm:hidden">
         <div className="pt-2 pb-3 space-y-1">
+          {/* Mobile logo row */}
+          <div className="flex justify-between items-center px-3 pb-2">
+            <div className="flex items-center space-x-2">
+              <img 
+                src="/assets/logo-square.png" 
+                alt="Square Logo" 
+                className="h-8 w-8 object-contain"
+              />
+              <img 
+                src="/assets/logo-horizontal.png" 
+                alt="Horizontal Logo" 
+                className="h-6 w-auto object-contain max-w-[80px]"
+              />
+            </div>
+            <img 
+              src="/assets/logo-right.png" 
+              alt="Right Logo" 
+              className="h-6 w-auto object-contain max-w-[60px]"
+            />
+          </div>
+          
           <Link
             to="/"
             className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${

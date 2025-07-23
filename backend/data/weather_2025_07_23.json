@@ -1,0 +1,30 @@
+{
+  "readings": [
+    {
+      "timestamp": "2025-07-23T14:01:32.712427",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 20.4,
+        "humidity": 50.1,
+        "pressure": 1015.86,
+        "condition": "Clear"
+      }
+    },
+    {
+      "timestamp": "2025-07-23T14:16:32.725169",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 25.0,
+        "humidity": 49.9,
+        "pressure": 1011.16,
+        "condition": "Clear"
+      }
+    }
+  ]
+}
