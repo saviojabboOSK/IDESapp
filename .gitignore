@@ -39,8 +39,6 @@ Thumbs.db
 .idea/
 
 # Images and large files (if not needed)
-images/
-logos/
 
 # Docker
 *.pid
