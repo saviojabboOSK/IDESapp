@@ -1,10 +1,10 @@
 # Placeholder file to ensure directory structure is maintained
-# Replace the following placeholder filenames with your actual logo files:
+# Current logo files in use:
 #
-# logo-square.png       - Square logo for the far left position
-# logo-horizontal.png   - Horizontal rectangular logo next to the square logo  
-# logo-middle.png       - Logo for the center position
-# logo-right.png        - Logo for the far right position (past Live/Healthy indicators)
+# OshkoshLogoBlack.png  - Square logo for the far left position (Oshkosh logo)
+# ADICLogoBlack.png     - Horizontal rectangular logo next to the square logo (ADIC logo)
+# IDESLogoBlack.png     - Logo for the center position (IDES logo)
+# BWLogo.png            - Logo for the far right position (BW logo, past Live/Healthy indicators)
 #
 # Supported formats: .png, .svg, .jpg, .jpeg
 # Recommended: Use .png or .svg for best quality and transparency support

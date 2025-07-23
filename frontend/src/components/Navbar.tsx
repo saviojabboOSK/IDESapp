@@ -17,24 +17,24 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-24">
           {/* Left side: Square logo + Horizontal logo + Navigation */}
           <div className="flex items-center space-x-4">
             {/* Square logo - far left */}
             <div className="flex-shrink-0">
               <img 
-                src="/assets/logo-square.png" 
+                src="/assets/OshkoshLogoBlack.png" 
                 alt="Square Logo" 
-                className="h-10 w-10 object-contain"
+                className="h-20 w-20 object-contain"
               />
             </div>
             
             {/* Horizontal rectangular logo - next to square */}
             <div className="flex-shrink-0">
               <img 
-                src="/assets/logo-horizontal.png" 
+                src="/assets/ADICLogoBlack.png" 
                 alt="Horizontal Logo" 
-                className="h-8 w-auto object-contain max-w-[120px]"
+                className="h-16 w-auto object-contain max-w-[240px]"
               />
             </div>
 
@@ -69,9 +69,9 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
           {/* Center: Middle logo */}
           <div className="flex-shrink-0 absolute left-1/2 transform -translate-x-1/2">
             <img 
-              src="/assets/logo-middle.png" 
+              src="/assets/IDESLogoBlack.png" 
               alt="Middle Logo" 
-              className="h-8 w-auto object-contain max-w-[100px]"
+              className="h-16 w-auto object-contain max-w-[200px]"
             />
           </div>
 
@@ -104,9 +104,9 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
             {/* Right logo - far right */}
             <div className="flex-shrink-0">
               <img 
-                src="/assets/logo-right.png" 
+                src="/assets/BWLogo.png" 
                 alt="Right Logo" 
-                className="h-8 w-auto object-contain max-w-[100px]"
+                className="h-16 w-auto object-contain max-w-[200px]"
               />
             </div>
           </div>
@@ -120,20 +120,20 @@ const Navbar: React.FC<NavbarProps> = ({ isConnected, backendHealth }) => {
           <div className="flex justify-between items-center px-3 pb-2">
             <div className="flex items-center space-x-2">
               <img 
-                src="/assets/logo-square.png" 
+                src="/assets/OshkoshLogoBlack.png" 
                 alt="Square Logo" 
-                className="h-8 w-8 object-contain"
+                className="h-16 w-16 object-contain"
               />
               <img 
-                src="/assets/logo-horizontal.png" 
+                src="/assets/ADICLogoBlack.png" 
                 alt="Horizontal Logo" 
-                className="h-6 w-auto object-contain max-w-[80px]"
+                className="h-12 w-auto object-contain max-w-[160px]"
               />
             </div>
             <img 
-              src="/assets/logo-right.png" 
+              src="/assets/BWLogo.png" 
               alt="Right Logo" 
-              className="h-6 w-auto object-contain max-w-[60px]"
+              className="h-12 w-auto object-contain max-w-[120px]"
             />
           </div>
           
