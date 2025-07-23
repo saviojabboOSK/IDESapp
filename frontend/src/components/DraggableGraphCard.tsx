@@ -93,9 +93,10 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
 
   // Prepare chart data
   const chartData = React.useMemo(() => {
-    if (!data || !config.metrics.length) {
+    if (!data || !config.metrics.length || !data.labels || data.labels.length === 0) {
       return null
     }
+    
     const labels = data.labels || []
     const datasets = config.metrics.map((metric: string, idx: number) => ({
       label: AVAILABLE_METRICS.find(m => m.id === metric)?.label || metric,
@@ -141,11 +142,13 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
   )
 
   const renderChart = () => {
-    if (!chartData) {
+    if (!chartData || !data) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-gray-500">
           <BarChart3 className="h-12 w-12 mb-2" />
-          <p className="font-medium">No Data Available</p>
+          <p className="font-medium">
+            {isLoading ? 'Loading Data...' : 'No Data Available'}
+          </p>
           <p className="text-sm text-center">
             {config.metrics.join(', ')} • {config.time_range}
           </p>
