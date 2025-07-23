@@ -38,6 +38,19 @@
         "pressure": 1017.21,
         "condition": "Clouds"
       }
+    },
+    {
+      "timestamp": "2025-07-23T14:53:04.038039",
+      "location": {
+        "city": "Demo City",
+        "country": "US"
+      },
+      "current": {
+        "temperature": 17.4,
+        "humidity": 79.4,
+        "pressure": 1020.58,
+        "condition": "Clouds"
+      }
     }
   ]
 }
