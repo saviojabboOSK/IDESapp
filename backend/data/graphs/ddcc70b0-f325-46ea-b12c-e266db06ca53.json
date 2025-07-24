@@ -28,13 +28,13 @@
   },
   "layout": {
     "x": 0,
-    "y": 9,
+    "y": 0,
     "width": 12,
-    "height": 9
+    "height": 7
   },
   "data": null,
   "created_at": "2025-07-11 11:28:48.398405",
-  "updated_at": "2025-07-23 14:39:18.525292",
+  "updated_at": "2025-07-23 18:20:24.321340",
   "is_ai_generated": false,
   "auto_refresh": true,
   "refresh_interval": 30
