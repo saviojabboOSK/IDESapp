@@ -47,3 +47,7 @@ Thumbs.db
 # Misc
 *.bak
 *.tmp
+
+
+influx.data.csv
+
