@@ -3,6 +3,23 @@
 **Indoor Digital Environment System**
 
 IDES 2.0 turns the raw numbers coming from the sensors in your building into live, easy-to-read charts and plain-English insights.
+You open the dashboard, ask questions like "Show me today's temperature and humidity" or "Forecast CO₂ for the next two weeks", and the system draws the graphs for you – then keeps them up-to-date as new readings arrive.
+
+## 🆕 New in v2.0: Sensor-Based Architecture
+
+IDES 2.0 introduces a completely redesigned data architecture focused on individual sensors:
+
+- **Sensor Selection**: Choose sensors by MAC address or friendly nickname
+- **Sensor Management**: Assign nicknames to sensors in the Settings page  
+- **Enhanced Graph Builder**: Select sensor first, then choose metrics from that sensor
+- **Custom Timeframes**: All predefined ranges plus custom date/time selection
+- **Backward Compatibility**: Existing v1.0 graphs continue to work seamlessly
+
+> **Upgrading from v1.0?** See the [Migration Guide](MIGRATION_GUIDE.md) for detailed instructions. 2.0
+
+**Indoor Digital Environment System**
+
+IDES 2.0 turns the raw numbers coming from the sensors in your building into live, easy-to-read charts and plain-English insights.
 You open the dashboard, ask questions like “Show me today’s temperature and humidity” or “Forecast CO₂ for the next two weeks”, and the system draws the graphs for you – then keeps them up-to-date as new readings arrive.
 
 ---
@@ -11,6 +28,7 @@ You open the dashboard, ask questions like “Show me today’s temperature and 
 
 |                          | In plain language                                                                                                   | Under the hood                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Sensor Selection**     | Pick your sensor by nickname or MAC address, then choose which metrics to display.                                 | New sensor-grouped data format with `/api/sensors` endpoints for discovery and management.            |
 | **Live charts**          | Every graph moves in real time – no page refresh needed.                                                            | FastAPI WebSocket streams new rows; React & Chart.js redraw instantly.                                 |
 | **Ask it anything**      | Type a question; a small AI model (or the OpenAI API – you choose) answers and, if helpful, draws a chart.          | Pluggable LLM service reads the latest sensor snapshots and returns JSON the front end can plot.       |
 | **Forecast & verify**    | The AI can look at past data, predict the next days, and later overlay the real numbers so you see how well it did. | Forecast data are dashed; new “actual” points paint over them and an automatic MAE/RMSE score appears. |

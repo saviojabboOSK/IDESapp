@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.core.connection_manager import ConnectionManager
 from app.core.scheduler import start_scheduler
 from app.api.graphs import router as graphs_router
+from app.api.sensors import router as sensors_router
 from app.api.prompt import router as prompt_router
 from app.api.settings import router as settings_router
 from app.api.ws import router as ws_router
@@ -58,6 +59,7 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(graphs_router, prefix="/api/graphs", tags=["graphs"])
+app.include_router(sensors_router, prefix="/api/sensors", tags=["sensors"])
 app.include_router(prompt_router, prefix="/api/prompt", tags=["prompt"])
 app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
 app.include_router(ws_router, prefix="/ws", tags=["websocket"])

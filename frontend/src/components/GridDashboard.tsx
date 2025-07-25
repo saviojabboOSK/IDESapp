@@ -5,7 +5,7 @@ import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Plus, RefreshCw, MessageSquare, Grid } from 'lucide-react'
 import DraggableGraphCard from './DraggableGraphCard'
 import PromptInput from './PromptInput'
-import GraphBuilderModal from './GraphBuilderModal'
+import GraphBuilderModalEnhanced from './GraphBuilderModalEnhanced'
 import GraphSettingsModal from './GraphSettingsModal'
 import 'react-grid-layout/css/styles.css'
 
@@ -15,8 +15,11 @@ interface GraphConfig {
   id: string
   title: string
   chart_type: string
+  sensor_id?: string  // New field for sensor selection
   metrics: string[]
   time_range: string
+  custom_start_time?: string  // New field for custom timeframes
+  custom_end_time?: string    // New field for custom timeframes
   settings: {
     color_scheme: string[]
     show_legend: boolean
@@ -526,7 +529,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
       )}
       
       {/* Graph Builder Modal */}
-      <GraphBuilderModal
+      <GraphBuilderModalEnhanced
         isOpen={showGraphBuilder}
         onSave={handleCreateGraph}
         onClose={() => setShowGraphBuilder(false)}

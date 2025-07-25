@@ -74,15 +74,18 @@ async def load_all_graphs() -> Dict[str, GraphModel]:
 
 async def create_default_graphs_if_needed() -> None:
     """Create default graph configurations if none exist."""
-    graphs_dir = get_graphs_dir()
-    if not any(graphs_dir.glob("*.json")):
-        default_graphs = [
-            GraphModel(id="temp-humidity", title="Temperature & Humidity", chart_type="line", metrics=["temperature", "humidity"], time_range="24h", settings=GraphSettings(color_scheme=["#3b82f6", "#ef4444"], show_legend=True, show_grid=True), layout=GraphLayout(x=0, y=0, width=6, height=4)),
-            GraphModel(id="co2-aqi", title="CO₂ & Air Quality", chart_type="area", metrics=["co2", "aqi"], time_range="12h", settings=GraphSettings(color_scheme=["#22c55e", "#f59e0b"], show_legend=True, show_grid=True), layout=GraphLayout(x=6, y=0, width=6, height=4)),
-            GraphModel(id="pressure", title="Atmospheric Pressure", chart_type="line", metrics=["pressure"], time_range="24h", settings=GraphSettings(color_scheme=["#8b5cf6"], show_legend=True, show_grid=True), layout=GraphLayout(x=0, y=4, width=6, height=4)),
-            GraphModel(id="light-level", title="Light Level", chart_type="bar", metrics=["light_level"], time_range="6h", settings=GraphSettings(color_scheme=["#eab308"], show_legend=True, show_grid=True), layout=GraphLayout(x=6, y=4, width=6, height=4))
-        ]
-        await asyncio.gather(*(save_graph_to_file(graph) for graph in default_graphs))
+    # Disabled automatic default graph creation
+    # Users should create their own graphs using the graph builder
+    pass
+    # graphs_dir = get_graphs_dir()
+    # if not any(graphs_dir.glob("*.json")):
+    #     default_graphs = [
+    #         GraphModel(id="temp-humidity", title="Living Room - Temperature & Humidity", chart_type="line", sensor_id="sensor_001", metrics=["temperature", "humidity"], time_range="24h", settings=GraphSettings(color_scheme=["#3b82f6", "#ef4444"], show_legend=True, show_grid=True), layout=GraphLayout(x=0, y=0, width=6, height=4)),
+    #         GraphModel(id="co2-aqi", title="Bedroom - CO₂ & Air Quality", chart_type="area", sensor_id="sensor_002", metrics=["co2", "aqi"], time_range="12h", settings=GraphSettings(color_scheme=["#22c55e", "#f59e0b"], show_legend=True, show_grid=True), layout=GraphLayout(x=6, y=0, width=6, height=4)),
+    #         GraphModel(id="pressure", title="Kitchen - Atmospheric Pressure", chart_type="line", sensor_id="sensor_003", metrics=["pressure"], time_range="24h", settings=GraphSettings(color_scheme=["#8b5cf6"], show_legend=True, show_grid=True), layout=GraphLayout(x=0, y=4, width=6, height=4)),
+    #         GraphModel(id="light-level", title="Living Room - Light Level", chart_type="bar", sensor_id="sensor_001", metrics=["light_level"], time_range="6h", settings=GraphSettings(color_scheme=["#eab308"], show_legend=True, show_grid=True), layout=GraphLayout(x=6, y=4, width=6, height=4))
+    #     ]
+    #     await asyncio.gather(*(save_graph_to_file(graph) for graph in default_graphs))
 
 def get_data_file_path(date: datetime) -> Path:
     """Get file path for sensor data snapshots."""
@@ -95,7 +98,7 @@ def get_data_file_path(date: datetime) -> Path:
 @router.get("/", response_model=List[GraphModel])
 async def get_all_graphs():
     """Retrieve all dashboard graphs with their current configurations."""
-    await create_default_graphs_if_needed()
+    # Removed automatic default graph creation - users should create their own graphs
     graphs = await load_all_graphs()
     return list(graphs.values())
 
@@ -197,67 +200,121 @@ async def get_graph_data(
     if not graph:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Graph not found")
     
-    end_dt = end_time or datetime.utcnow()
-    start_dt = start_time or end_dt - timedelta(hours=24)
-    
-    # Collect data from relevant files
-    tasks = []
-    current_date = start_dt.date()
-    while current_date <= end_dt.date():
-        data_file = get_data_file_path(datetime.combine(current_date, datetime.min.time()))
-        tasks.append(read_json_file(data_file))
-        current_date += timedelta(days=1)
-        
-    file_contents = await asyncio.gather(*tasks)
+    # Handle custom time ranges
+    if graph.custom_start_time and graph.custom_end_time:
+        start_dt = graph.custom_start_time
+        end_dt = graph.custom_end_time
+    else:
+        end_dt = end_time or datetime.utcnow()
+        start_dt = start_time or end_dt - timedelta(hours=24)
     
     data_points = []
-    found_any_data = False
     
-    for content in filter(None, file_contents):
-        if content and "timestamps" in content:
-            found_any_data = True
-            timestamps = content.get("timestamps", [])
-            for i, ts_str in enumerate(timestamps):
-                try:
-                    ts = datetime.fromisoformat(ts_str)
-                    if start_dt <= ts <= end_dt:
+    # Try to load real sensor data from available files
+    # Use absolute path to the data directory
+    data_dir = Path(__file__).parent.parent.parent / "data"
+    sensor_files = [
+        data_dir / "sensors_2025_07_21.json",
+        data_dir / "sensors_from_csv.json"
+    ]
+    
+    for sensor_file in sensor_files:
+        if sensor_file.exists():
+            content = await read_json_file(sensor_file)
+            if not content or "sensors" not in content:
+                continue
+                
+            # Handle multi-sensor comparison (new enhanced format)
+            if hasattr(graph, 'sensors') and graph.sensors:
+                # Multi-sensor graph
+                for sensor_selection in graph.sensors:
+                    sensor_id = sensor_selection.get('sensor_id')
+                    selected_metrics = sensor_selection.get('metrics', [])
+                    
+                    if sensor_id in content["sensors"]:
+                        sensor_data = content["sensors"][sensor_id]
+                        sensor_metrics = sensor_data.get("metrics", {})
+                        
+                        # Collect timestamps and values for selected metrics
+                        for metric in selected_metrics:
+                            if metric in sensor_metrics:
+                                timestamps = sensor_metrics[metric].get("timestamps", [])
+                                values = sensor_metrics[metric].get("values", [])
+                                
+                                for ts_str, value in zip(timestamps, values):
+                                    try:
+                                        # Handle different timestamp formats
+                                        ts_clean = ts_str.replace('Z', '').replace('+00:00', '')
+                                        if '.' in ts_clean:
+                                            ts = datetime.fromisoformat(ts_clean)
+                                        else:
+                                            ts = datetime.fromisoformat(ts_clean)
+                                        
+                                        # Find existing point or create new one
+                                        existing_point = next((p for p in data_points if p["timestamp"] == ts_str), None)
+                                        if existing_point:
+                                            existing_point[f"{sensor_id}_{metric}"] = value
+                                        else:
+                                            point = {"timestamp": ts_str, f"{sensor_id}_{metric}": value}
+                                            data_points.append(point)
+                                    except (ValueError, TypeError):
+                                        continue
+                        
+            # Handle single sensor graph (backward compatibility)
+            elif graph.sensor_id and graph.sensor_id in content["sensors"]:
+                sensor_data = content["sensors"][graph.sensor_id]
+                sensor_metrics = sensor_data.get("metrics", {})
+                
+                # Collect all timestamps from requested metrics
+                all_timestamps = set()
+                metric_data = {}
+                
+                for metric in graph.metrics:
+                    if metric in sensor_metrics:
+                        timestamps = sensor_metrics[metric].get("timestamps", [])
+                        values = sensor_metrics[metric].get("values", [])
+                        metric_data[metric] = dict(zip(timestamps, values))
+                        all_timestamps.update(timestamps)
+                
+                # Create data points for each timestamp
+                for ts_str in all_timestamps:
+                    try:
+                        # Handle different timestamp formats - just use the timestamp as-is
                         point = {"timestamp": ts_str}
                         for metric in graph.metrics:
-                            if metric in content and i < len(content[metric]):
-                                point[metric] = content[metric][i]
-                            else:
-                                point[metric] = None
+                            point[metric] = metric_data.get(metric, {}).get(ts_str)
                         data_points.append(point)
-                except (ValueError, TypeError) as e:
-                    # Skip invalid timestamps
-                    continue
+                    except (ValueError, TypeError):
+                        continue
+            
+            # If we found data in this file, break and use it
+            if data_points:
+                break
 
-    # If no data found, generate some mock data for demo purposes
-    if not found_any_data or not data_points:
-        import random
-        now = datetime.utcnow()
-        mock_points = []
-        for i in range(min(limit, 24)):  # Generate up to 24 hours of mock data
-            timestamp = now - timedelta(hours=23-i)
-            point = {"timestamp": timestamp.isoformat()}
-            for metric in graph.metrics:
-                if metric == "temperature":
-                    point[metric] = round(22.0 + random.uniform(-2, 2), 1)
-                elif metric == "humidity":
-                    point[metric] = round(45.0 + random.uniform(-5, 5), 1)
-                elif metric == "co2":
-                    point[metric] = round(420 + random.uniform(-50, 100), 0)
-                elif metric == "aqi":
-                    point[metric] = max(0, 35 + random.randint(-10, 15))
-                elif metric == "pressure":
-                    point[metric] = round(1013.25 + random.uniform(-5, 5), 2)
-                elif metric == "light_level":
-                    point[metric] = round(300 + random.uniform(-50, 200), 1)
-                else:
-                    point[metric] = random.uniform(0, 100)
-            mock_points.append(point)
-        data_points = mock_points
-
-    data_points.sort(key=lambda x: x["timestamp"], reverse=True)
+    # Remove duplicates and sort by timestamp
+    unique_points = {}
+    for point in data_points:
+        ts = point["timestamp"]
+        if ts not in unique_points:
+            unique_points[ts] = point
+        else:
+            # Merge data points with same timestamp
+            unique_points[ts].update(point)
     
-    return {"graph_id": graph_id, "data": data_points[:limit], "count": len(data_points)}
+    data_points = list(unique_points.values())
+    
+    # Sort by timestamp (parse for sorting but keep original format)
+    def parse_timestamp_for_sort(ts_str):
+        try:
+            ts_clean = ts_str.replace('Z', '').replace('+00:00', '')
+            return datetime.fromisoformat(ts_clean)
+        except:
+            return datetime.min
+    
+    data_points.sort(key=lambda x: parse_timestamp_for_sort(x["timestamp"]))
+    
+    # Apply limit - take most recent points
+    if len(data_points) > limit:
+        data_points = data_points[-limit:]
+    
+    return {"graph_id": graph_id, "data": data_points, "count": len(data_points)}

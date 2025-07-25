@@ -1,7 +1,8 @@
-// Settings page for IDES 2.0 system configuration including data collection intervals, LLM backend selection, InfluxDB connections, and service health monitoring with real-time status updates.
+// Settings page for IDES 2.0 system configuration including data collection intervals, LLM backend selection, InfluxDB connections, sensor nickname management, and service health monitoring with real-time status updates.
 
 import React, { useState, useEffect } from 'react'
 import { Save, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react'
+import SensorSettings from '../components/SensorSettings'
 
 interface SettingsProps {
   backendStatus: any
@@ -89,8 +90,13 @@ const Settings: React.FC<SettingsProps> = ({ backendStatus }) => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
         <p className="text-gray-600 mt-1">
-          Configure data collection, AI services, and system parameters
+          Configure data collection, AI services, sensor management, and system parameters
         </p>
+      </div>
+
+      {/* Sensor Management Section */}
+      <div className="mb-8">
+        <SensorSettings />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

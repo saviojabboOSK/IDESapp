@@ -21,6 +21,7 @@ class TimeRange(str, Enum):
     HOUR_24 = "24h"
     DAY_7 = "7d"
     DAY_30 = "30d"
+    CUSTOM = "custom"  # For custom time ranges
 
 class GraphSettings(BaseModel):
     """Configuration settings for graph appearance and behavior."""
@@ -53,8 +54,16 @@ class GraphModel(BaseModel):
     id: str = Field(..., description="Unique graph identifier")
     title: str = Field(..., description="Graph display title")
     chart_type: ChartType = Field(default=ChartType.LINE, description="Chart visualization type")
+    
+    # New sensor-based structure
+    sensor_id: Optional[str] = Field(default=None, description="Selected sensor ID")
     metrics: List[str] = Field(..., description="List of sensor metrics to display")
+    
+    # Time range with custom options
     time_range: TimeRange = Field(default=TimeRange.HOUR_24, description="Data time range")
+    custom_start_time: Optional[datetime] = Field(default=None, description="Custom start time for data query")
+    custom_end_time: Optional[datetime] = Field(default=None, description="Custom end time for data query")
+    
     settings: GraphSettings = Field(default_factory=GraphSettings, description="Graph appearance settings")
     layout: GraphLayout = Field(default_factory=GraphLayout, description="Dashboard layout position")
     data: Optional[GraphData] = Field(default=None, description="Current graph data")
@@ -77,8 +86,11 @@ class GraphCreateRequest(BaseModel):
     """Request model for creating new graphs."""
     title: str
     chart_type: ChartType = ChartType.LINE
+    sensor_id: Optional[str] = None  # New field for sensor selection
     metrics: List[str]
     time_range: TimeRange = TimeRange.HOUR_24
+    custom_start_time: Optional[datetime] = None
+    custom_end_time: Optional[datetime] = None
     settings: Optional[GraphSettings] = None
     layout: Optional[GraphLayout] = None
 
@@ -86,12 +98,41 @@ class GraphUpdateRequest(BaseModel):
     """Request model for updating existing graphs."""
     title: Optional[str] = None
     chart_type: Optional[ChartType] = None
+    sensor_id: Optional[str] = None  # New field for sensor selection
     metrics: Optional[List[str]] = None
     time_range: Optional[TimeRange] = None
+    custom_start_time: Optional[datetime] = None
+    custom_end_time: Optional[datetime] = None
     settings: Optional[GraphSettings] = None
     layout: Optional[GraphLayout] = None
     auto_refresh: Optional[bool] = None
     refresh_interval: Optional[int] = None
+
+# New models for sensor management
+class SensorInfo(BaseModel):
+    """Information about a sensor device."""
+    id: str = Field(..., description="Unique sensor identifier")
+    mac_address: str = Field(..., description="MAC address or topic string")
+    nickname: Optional[str] = Field(default=None, description="User-friendly name")
+    location: Optional[str] = Field(default=None, description="Physical location")
+    model: Optional[str] = Field(default=None, description="Sensor model/type")
+    installed_at: Optional[datetime] = Field(default=None, description="Installation timestamp")
+    last_seen: Optional[datetime] = Field(default=None, description="Last data received")
+    is_active: bool = Field(default=True, description="Sensor status")
+    available_metrics: List[str] = Field(default_factory=list, description="Available sensor metrics")
+
+class SensorData(BaseModel):
+    """Sensor data structure for the new format."""
+    sensor_id: str = Field(..., description="Sensor identifier")
+    timestamps: List[str] = Field(default_factory=list, description="ISO timestamp strings")
+    values: Dict[str, List[float]] = Field(default_factory=dict, description="Metric values by name")
+
+class SensorDataResponse(BaseModel):
+    """Response model for sensor data queries."""
+    sensor: SensorInfo = Field(..., description="Sensor information")
+    data: SensorData = Field(..., description="Sensor data")
+    total_points: int = Field(..., description="Total data points")
+    time_range: Dict[str, str] = Field(..., description="Actual time range of data")
 
 class MetricInfo(BaseModel):
     """Information about available sensor metrics."""
