@@ -62,20 +62,25 @@ class InfluxWorker:
         try:
             logger.info("Starting sensor data collection...")
             
-            if self.client and self.query_api:
-                sensor_data = await self._query_influx_data()
-            else:
-                sensor_data = self._generate_mock_data()
+            # Skip data collection since we're using static CSV data
+            # The real sensor data is already converted and available in sensors_2025_07_21.json
+            logger.info("Using static CSV data - skipping InfluxDB collection")
+            return
             
-            if not sensor_data.get("timestamps"):
-                logger.info("No new sensor data to process.")
-                return
-
-            await self._save_to_json_snapshot(sensor_data)
-            await self._broadcast_update(sensor_data)
-            
-            self.last_collection_time = datetime.utcnow()
-            logger.info(f"Sensor data collection completed: {len(sensor_data['timestamps'])} points")
+            # if self.client and self.query_api:
+            #     sensor_data = await self._query_influx_data()
+            # else:
+            #     sensor_data = self._generate_mock_data()
+            # 
+            # if not sensor_data.get("timestamps"):
+            #     logger.info("No new sensor data to process.")
+            #     return
+            # 
+            # await self._save_to_json_snapshot(sensor_data)
+            # await self._broadcast_update(sensor_data)
+            # 
+            # self.last_collection_time = datetime.utcnow()
+            # logger.info(f"Sensor data collection completed: {len(sensor_data['timestamps'])} points")
             
         except Exception as e:
             logger.error(f"Sensor data collection failed: {e}", exc_info=True)
@@ -152,6 +157,8 @@ class InfluxWorker:
 
             for key, values in data.items():
                 new_values = [values[i] for i in new_indices]
+                if key not in existing_data:
+                    existing_data[key] = []
                 existing_data[key].extend(new_values)
 
             with open(file_path, 'w') as f:

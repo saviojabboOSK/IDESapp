@@ -193,7 +193,7 @@ async def get_graph_data(
     graph_id: str,
     start_time: Optional[datetime] = None,
     end_time: Optional[datetime] = None,
-    limit: int = 1000
+    limit: int = 5000  # Increased default limit for high-frequency sensor data
 ):
     """Get historical data for specific graph with time range filtering."""
     graph = await load_graph_from_file(graph_id)
@@ -205,8 +205,59 @@ async def get_graph_data(
         start_dt = graph.custom_start_time
         end_dt = graph.custom_end_time
     else:
-        end_dt = end_time or datetime.utcnow()
-        start_dt = start_time or end_dt - timedelta(hours=24)
+        # For historical data, use the actual data time range instead of current time
+        # First, determine the time range of available data
+        data_dir = Path(__file__).parent.parent.parent / "data"
+        sensor_file = data_dir / "sensors_2025_07_21.json"
+        
+        data_end_time = datetime.utcnow()
+        data_start_time = data_end_time - timedelta(hours=24)  # Default fallback
+        
+        if sensor_file.exists():
+            try:
+                # Read a small sample to determine actual data time range
+                content = await read_json_file(sensor_file)
+                if content and "sensors" in content:
+                    # Find any sensor with data to determine time range
+                    for sensor_data in content["sensors"].values():
+                        metrics = sensor_data.get("metrics", {})
+                        for metric_data in metrics.values():
+                            timestamps = metric_data.get("timestamps", [])
+                            if timestamps:
+                                # Parse first and last timestamps
+                                first_ts = datetime.fromisoformat(timestamps[0].replace('Z', '').replace('+00:00', ''))
+                                last_ts = datetime.fromisoformat(timestamps[-1].replace('Z', '').replace('+00:00', ''))
+                                data_start_time = first_ts
+                                data_end_time = last_ts
+                                break
+                        if data_start_time != data_end_time - timedelta(hours=24):
+                            break
+            except:
+                pass
+        
+        # Apply the requested time range relative to the data's actual time range
+        if graph.time_range == "1h":
+            start_dt = max(data_start_time, data_end_time - timedelta(hours=1))
+            end_dt = data_end_time
+        elif graph.time_range == "6h":
+            start_dt = max(data_start_time, data_end_time - timedelta(hours=6))
+            end_dt = data_end_time
+        elif graph.time_range == "12h":
+            start_dt = max(data_start_time, data_end_time - timedelta(hours=12))
+            end_dt = data_end_time
+        elif graph.time_range == "24h":
+            start_dt = max(data_start_time, data_end_time - timedelta(hours=24))
+            end_dt = data_end_time
+        elif graph.time_range == "7d":
+            start_dt = max(data_start_time, data_end_time - timedelta(days=7))
+            end_dt = data_end_time
+        elif graph.time_range == "30d":
+            start_dt = max(data_start_time, data_end_time - timedelta(days=30))
+            end_dt = data_end_time
+        else:
+            # Default to all available data
+            start_dt = data_start_time
+            end_dt = data_end_time
     
     data_points = []
     
@@ -250,13 +301,15 @@ async def get_graph_data(
                                         else:
                                             ts = datetime.fromisoformat(ts_clean)
                                         
-                                        # Find existing point or create new one
-                                        existing_point = next((p for p in data_points if p["timestamp"] == ts_str), None)
-                                        if existing_point:
-                                            existing_point[f"{sensor_id}_{metric}"] = value
-                                        else:
-                                            point = {"timestamp": ts_str, f"{sensor_id}_{metric}": value}
-                                            data_points.append(point)
+                                        # Apply time range filtering
+                                        if start_dt <= ts <= end_dt:
+                                            # Find existing point or create new one
+                                            existing_point = next((p for p in data_points if p["timestamp"] == ts_str), None)
+                                            if existing_point:
+                                                existing_point[f"{sensor_id}_{metric}"] = value
+                                            else:
+                                                point = {"timestamp": ts_str, f"{sensor_id}_{metric}": value}
+                                                data_points.append(point)
                                     except (ValueError, TypeError):
                                         continue
                         
@@ -279,11 +332,19 @@ async def get_graph_data(
                 # Create data points for each timestamp
                 for ts_str in all_timestamps:
                     try:
-                        # Handle different timestamp formats - just use the timestamp as-is
-                        point = {"timestamp": ts_str}
-                        for metric in graph.metrics:
-                            point[metric] = metric_data.get(metric, {}).get(ts_str)
-                        data_points.append(point)
+                        # Handle different timestamp formats - parse for filtering
+                        ts_clean = ts_str.replace('Z', '').replace('+00:00', '')
+                        if '.' in ts_clean:
+                            ts = datetime.fromisoformat(ts_clean)
+                        else:
+                            ts = datetime.fromisoformat(ts_clean)
+                        
+                        # Apply time range filtering
+                        if start_dt <= ts <= end_dt:
+                            point = {"timestamp": ts_str}
+                            for metric in graph.metrics:
+                                point[metric] = metric_data.get(metric, {}).get(ts_str)
+                            data_points.append(point)
                     except (ValueError, TypeError):
                         continue
             
@@ -313,8 +374,27 @@ async def get_graph_data(
     
     data_points.sort(key=lambda x: parse_timestamp_for_sort(x["timestamp"]))
     
-    # Apply limit - take most recent points
+    # Apply limit with intelligent sampling
     if len(data_points) > limit:
-        data_points = data_points[-limit:]
+        # Instead of taking evenly spaced points, take more recent points with some historical context
+        # Keep the most recent 70% and sample the rest evenly
+        recent_count = int(limit * 0.7)
+        historical_count = limit - recent_count
+        
+        # Take most recent points
+        recent_points = data_points[-recent_count:]
+        
+        # Sample historical points evenly if we have enough
+        if len(data_points) > recent_count:
+            historical_data = data_points[:-recent_count]
+            if len(historical_data) > historical_count:
+                step = len(historical_data) // historical_count
+                historical_points = historical_data[::max(1, step)][:historical_count]
+            else:
+                historical_points = historical_data
+            
+            data_points = historical_points + recent_points
+        else:
+            data_points = recent_points
     
     return {"graph_id": graph_id, "data": data_points, "count": len(data_points)}
