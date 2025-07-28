@@ -1,227 +1,151 @@
-# IDES 2.0
+# IDES 2.0: Indoor Digital Environment System
 
-**Indoor Digital Environment System**
+IDES 2.0 transforms raw sensor data from your building into live, interactive charts and plain-English insights. Ask the system questions like, "What was the temperature and humidity yesterday?" or "Forecast CO₂ levels for the next week," and it will generate and display the relevant graphs, keeping them updated in real-time as new data arrives.
 
-IDES 2.0 turns the raw numbers coming from the sensors in your building into live, easy-to-read charts and plain-English insights.
-You open the dashboard, ask questions like "Show me today's temperature and humidity" or "Forecast CO₂ for the next two weeks", and the system draws the graphs for you – then keeps them up-to-date as new readings arrive.
+![IDES Home Screen](images/IDEShome0728.png)
 
-## 🆕 New in v2.0: Sensor-Based Architecture
+## ✨ Key Features
 
-IDES 2.0 introduces a completely redesigned data architecture focused on individual sensors:
+| Feature                  | Description                                                                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sensor-Centric**       | Select sensors by MAC address or a friendly nickname. The entire experience is built around the data from individual sensors.              |
+| **Live Charts**          | Graphs update in real-time without needing a page refresh, powered by WebSockets.                                                        |
+| **Natural Language AI**  | Ask for data in plain English. A pluggable LLM service (local or OpenAI) provides answers and can generate charts on the fly.             |
+| **Predictive Forecasting** | The AI can forecast future sensor readings and later compare its predictions against actual data, complete with accuracy scores (MAE/RMSE). |
+| **Customizable Dashboard** | Drag, drop, and resize graph cards to create a personalized layout. Customize metrics, time ranges, and chart types for each graph.      |
+| **Automated Data Purging** | Set a data retention period in the settings, and the system will automatically clean up old data.                                        |
 
-- **Sensor Selection**: Choose sensors by MAC address or friendly nickname
-- **Sensor Management**: Assign nicknames to sensors in the Settings page  
-- **Enhanced Graph Builder**: Select sensor first, then choose metrics from that sensor
-- **Custom Timeframes**: All predefined ranges plus custom date/time selection
-- **Backward Compatibility**: Existing v1.0 graphs continue to work seamlessly
+## 🏗️ How It Works
 
-> **Upgrading from v1.0?** See the [Migration Guide](MIGRATION_GUIDE.md) for detailed instructions. 2.0
+The system is composed of a few key components that work together to collect, process, and visualize sensor data.
 
-**Indoor Digital Environment System**
+```mermaid
+graph TD
+    subgraph "Data Source"
+        A[Sensors]
+    end
 
-IDES 2.0 turns the raw numbers coming from the sensors in your building into live, easy-to-read charts and plain-English insights.
-You open the dashboard, ask questions like “Show me today’s temperature and humidity” or “Forecast CO₂ for the next two weeks”, and the system draws the graphs for you – then keeps them up-to-date as new readings arrive.
+    subgraph "Data Pipeline"
+        A --> B[InfluxDB];
+        B --> C{Python Worker};
+        C --> D[JSON Snapshots];
+    end
 
----
+    subgraph "Application Backend"
+        D --> E[FastAPI Server];
+        E --> F((REST API));
+        E --> G((WebSocket));
+    end
 
-## What you get
+    subgraph "AI Service"
+        E --> H{LLM Service};
+        H --> E;
+    end
 
-|                          | In plain language                                                                                                   | Under the hood                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Sensor Selection**     | Pick your sensor by nickname or MAC address, then choose which metrics to display.                                 | New sensor-grouped data format with `/api/sensors` endpoints for discovery and management.            |
-| **Live charts**          | Every graph moves in real time – no page refresh needed.                                                            | FastAPI WebSocket streams new rows; React & Chart.js redraw instantly.                                 |
-| **Ask it anything**      | Type a question; a small AI model (or the OpenAI API – you choose) answers and, if helpful, draws a chart.          | Pluggable LLM service reads the latest sensor snapshots and returns JSON the front end can plot.       |
-| **Forecast & verify**    | The AI can look at past data, predict the next days, and later overlay the real numbers so you see how well it did. | Forecast data are dashed; new “actual” points paint over them and an automatic MAE/RMSE score appears. |
-| **Customise every card** | Click the ⚙️ on a graph, flip it over, pick different metrics, time ranges or chart types.                          | The back face of each React card patches its settings through `/api/graphs/{id}`.                      |
-| **Drag & resize layout** | Arrange your favourite charts on the grid – make some big, some small.                                              | dnd-kit & interact.js store layout in localStorage (and optionally the back-end).                      |
-| **Automatic clean-up**   | Decide how many weeks of history to keep; old files vanish on their own.                                            | APScheduler runs a purge job using the number of weeks you chose in Settings.                          |
+    subgraph "User Interface"
+        F --> I[React Frontend];
+        G --> I;
+    end
 
----
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#ccf,stroke:#333,stroke-width:2px
+    style C fill:#f8d,stroke:#333,stroke-width:2px
+    style D fill:#dfd,stroke:#333,stroke-width:2px
+    style E fill:#f96,stroke:#333,stroke-width:2px
+    style H fill:#f96,stroke:#333,stroke-width:2px
+    style I fill:#9cf,stroke:#333,stroke-width:2px
+```
 
-## How it works (one-minute tour)
+1.  **Sensors** collect environmental data.
+2.  A **Python Worker** pulls data from **InfluxDB** every 30 seconds and stores it in weekly **JSON snapshots**.
+3.  The **FastAPI Server** serves the data to the frontend via a **REST API** and pushes real-time updates through a **WebSocket**.
+4.  The **React Frontend** visualizes the data in interactive charts.
+5.  When you ask a question, the request is sent to an **LLM Service** (like a local Ollama instance or the OpenAI API) to be interpreted, which can result in a new chart being generated.
+
+## 🚀 Getting Started
+
+You can run IDES 2.0 locally for development or deploy it using Docker.
+
+### Prerequisites
+
+-   **Python 3.10+**
+-   **Node.js 18+**
+-   **pnpm** (`npm install -g pnpm`)
+-   **Docker & Docker Compose** (for Docker-based setup)
+-   **Make** (optional, but simplifies running commands)
+
+### 1. Local Development (Recommended)
+
+The quickest way to get everything running is to use the provided `Makefile`.
+
+```bash
+# Install dependencies, set up the environment, and start the servers
+make setup && make dev
+```
+
+This command will:
+1.  Create a Python virtual environment.
+2.  Install all backend and frontend dependencies.
+3.  Create a default `.env` configuration file.
+4.  Start the FastAPI backend and the React frontend development servers.
+
+Once running, you can access the application at:
+-   **Frontend:** `http://localhost:5173`
+-   **Backend API:** `http://localhost:8000`
+-   **API Docs:** `http://localhost:8000/docs`
+
+### 2. Docker Deployment
+
+If you prefer to use Docker, you can use Docker Compose to manage the services.
+
+```bash
+# Build and run the development stack in Docker
+make docker-dev
+
+# For production
+make docker-prod
+
+# To run with a local LLM service (Ollama)
+make docker-llm
+```
+
+### Useful Commands
+
+The `Makefile` contains shortcuts for most common tasks.
+
+-   `make help`: Show all available commands.
+-   `make status`: Check the status of all services.
+-   `make stop`: Stop all running services.
+-   `make clean`: Remove all build artifacts and installed dependencies.
+
+## 📁 Project Structure
+
+The project is organized into two main parts: a Python backend and a React frontend.
 
 ```
-Sensors  →  InfluxDB  →  Python worker  →  JSON snapshots  →  FastAPI
-                                |                               |
-                                |  WebSocket                    |  REST
-                                ▼                               ▼
-                           React front end  ←–––––– LLM service (local or OpenAI)
-```
-
-* The **worker** pulls sensor data every 30 seconds, appending them to a single JSON file per week.
-* After every pull it tells the browser “new data!” through a WebSocket.
-* The **front end** receives that ping and updates the correct charts.
-* When you type a prompt, FastAPI hands the latest snapshots to the **LLM**; the reply may include a ready-to-draw chart plus a short explanation.
-
----
-
-## What’s in the folders?
-
-```
-idesAPP_7_7_2025/
+├── backend/            # Python/FastAPI Application
+│   ├── app/            # Core application code
+│   │   ├── api/        # API endpoints and WebSocket logic
+│   │   ├── workers/    # Background tasks (InfluxDB polling, data purging)
+│   │   └── llm/        # LLM service integrations
+│   └── data/           # Stored JSON data snapshots
 │
-├── backend/                 # Python
-│   ├── app/                 # FastAPI application
-│   │   ├── api/             # HTTP routes & WebSocket
-│   │   ├── workers/         # Influx pull, purge, weather, forecast
-│   │   └── llm/             # openai_service.py  |  local_service.py
-│   └── data/                # *.json snapshots (auto-rotated)
-│
-└── frontend/                # React 19 + Vite + TS
-    ├── public/assets/       # logos
-    └── src/                 # components, hooks, pages, Tailwind CSS
+└── frontend/           # React/TypeScript Application
+    ├── public/         # Static assets (logos, etc.)
+    └── src/            # Source code (components, pages, hooks)
 ```
 
-Everything is standard FastAPI + React; extend or replace pieces without touching the whole stack.
+## 🔧 Configuration & Customization
 
----
+-   **Environment Variables**: The backend is configured through a `.env` file created by `make setup`. Here you can set API keys, database URLs, and other settings.
+-   **Change Logos & Colors**: Modify files in `frontend/public/assets/` and `frontend/src/index.css`.
+-   **Swap AI Engine**: Go to the **Settings** page in the application to switch between a local LLM and the OpenAI API.
 
+## 🤝 Contributing
 
-## Project Automation: Makefile Commands
-
-This project uses a Makefile to automate setup, development, testing, and deployment. Here are the main commands you can run:
-
-| Command                | Description |
-|------------------------|-------------|
-| `make install`         | Install all backend (Python) and frontend (Node.js) dependencies. |
-| `make install-backend` | Install only backend Python dependencies in a virtual environment. |
-| `make install-frontend`| Install only frontend Node.js dependencies using pnpm. |
-| `make setup`           | Run full setup, including copying example config and creating data folders. |
-| `make activate`        | Show the command to activate the Python virtual environment. |
-| `make shell`           | Open a shell with the Python virtual environment activated. |
-| `make dev`             | Start both backend (FastAPI) and frontend (React) dev servers. |
-| `make dev-backend`     | Start only the backend dev server. |
-| `make dev-frontend`    | Start only the frontend dev server. |
-| `make backend`         | Alias for `make dev-backend`. |
-| `make frontend`        | Alias for `make dev-frontend`. |
-| `make build`           | Build the frontend for production. |
-| `make test`            | Run all backend and frontend tests. |
-| `make test-backend`    | Run backend (Python) tests. |
-| `make test-frontend`   | Run frontend (React) tests. |
-| `make lint`            | Lint all code (backend and frontend). |
-| `make lint-backend`    | Lint backend Python code. |
-| `make lint-frontend`   | Lint frontend TypeScript/React code. |
-| `make format`          | Format all code (backend and frontend). |
-| `make format-backend`  | Format backend Python code. |
-| `make format-frontend` | Format frontend TypeScript/React code. |
-| `make docker`          | Run the full stack with Docker Compose. |
-| `make docker-dev`      | Run the dev stack with Docker Compose. |
-| `make docker-prod`     | Run the production stack with Docker Compose. |
-| `make docker-llm`      | Run with local LLM service (Ollama). |
-| `make logs`            | Show Docker logs. |
-| `make clean`           | Remove all build artifacts and dependencies. |
-| `make clean-docker`    | Remove Docker containers and volumes. |
-| `make status`          | Show status of backend, frontend, and InfluxDB services. |
-| `make check`           | Check if dependencies are installed. |
-| `make stop`            | Stop all dev servers. |
-| `make restart`         | Restart all dev servers. |
-| `make install-mac`     | Install dependencies on macOS (requires Homebrew). |
-| `make install-linux`   | Install dependencies on Linux. |
-| `make install-windows` | Install dependencies on Windows (WSL or Git Bash). |
-| `make db-setup`        | Start InfluxDB with Docker and set up sample data. |
-| `make db-reset`        | Reset InfluxDB data. |
-| `make info`            | Show project info and URLs. |
-| `make requirements`    | Show system requirements. |
-
-You can run any of these commands from the project root. For more details, run `make help`.
-
-## Want to tinker?
-
-* Change colours or logos – edit `frontend/src/index.css` and `frontend/public/assets/`.
-* Add a new metric – point the worker’s Influx query at it; the front-end settings list reads whatever the back end advertises.
-* Swap AI engines – open **Settings → LLM backend**; choose *Local* (eg Ollama) or *OpenAI API*.
-
-Pull requests are welcome – just keep the code formatted (`ruff`, `prettier`) and add a quick test when you add a feature.
+Pull requests are welcome! Please ensure your code is formatted (`make format`) and that you add tests for any new features.
 
 ---
 
 **Maintainer:** Savio Jabbo · [sjabbo@oshkoshcorp.com](mailto:sjabbo@oshkoshcorp.com)
 *Licensed under the OshKosh Restricted License.*
-
----
-
-# Quick Start Guide
-
-## 🚀 One-Command Setup
-
-### Local Development (Recommended)
-```bash
-# Install dependencies and start everything
-make setup && make dev
-```
-
-This will:
-1. Create Python virtual environment
-2. Install all Python dependencies
-3. Install Node.js dependencies with pnpm
-4. Create .env configuration
-5. Start both backend and frontend servers
-
-**URLs:**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
-
-### Docker Deployment
-
-#### Development with Docker
-```bash
-make docker-dev
-```
-
-#### Production with Docker
-```bash
-make docker-prod
-```
-
-#### With Local LLM (Ollama)
-```bash
-make docker-llm
-```
-
-## 📋 Prerequisites
-
-- **Python 3.10+** and pip
-- **Node.js 18+** and npm
-- **pnpm** (install with `npm install -g pnpm`)
-- **Docker & Docker Compose** (for Docker deployment)
-
-## 🔧 Available Commands
-
-```bash
-make help              # Show all available commands
-make setup             # Complete project setup
-make dev               # Start development servers
-make status            # Check service status
-make stop              # Stop all services
-make clean             # Clean all build artifacts
-```
-
-## 🐳 Docker Quick Reference
-
-```bash
-# Start full development stack
-docker-compose up --build
-
-# Start only specific services
-docker-compose up backend influxdb
-
-# View logs
-docker-compose logs -f
-
-# Stop and clean
-docker-compose down -v
-```
-
-## 🛠 Development Workflow
-
-1. **Start development**: `make dev`
-2. **Check status**: `make status`
-3. **View logs**: `make logs` (for Docker) or check terminal output
-4. **Stop services**: `make stop`
-
-## 📊 Default Access
-
-- **InfluxDB**: admin / password123
-- **Sample data**: Generated automatically
-- **AI Service**: Local LLM (configurable in Settings)
