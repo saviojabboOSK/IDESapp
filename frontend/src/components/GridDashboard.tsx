@@ -5,7 +5,7 @@ import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Plus, RefreshCw, MessageSquare, Grid } from 'lucide-react'
 import DraggableGraphCard from './DraggableGraphCard'
 import PromptInput from './PromptInput'
-import GraphBuilderModal from './GraphBuilderModal'
+import GraphBuilderModalEnhanced from './GraphBuilderModalEnhanced'
 import GraphSettingsModal from './GraphSettingsModal'
 import 'react-grid-layout/css/styles.css'
 
@@ -15,8 +15,15 @@ interface GraphConfig {
   id: string
   title: string
   chart_type: string
+  sensor_id?: string  // New field for sensor selection
+  sensors?: Array<{   // New field for multi-sensor selection
+    sensor_id: string
+    metrics: string[]
+  }>
   metrics: string[]
   time_range: string
+  custom_start_time?: string  // New field for custom timeframes
+  custom_end_time?: string    // New field for custom timeframes
   settings: {
     color_scheme: string[]
     show_legend: boolean
@@ -42,7 +49,8 @@ interface GraphConfig {
 interface GraphData {
   [graphId: string]: {
     labels: string[]
-    data: { [metric: string]: number[] }
+    data: { [metric: string]: (number | null)[] }
+    sensor_metadata?: { [sensorId: string]: { nickname: string, metrics: string[] } }
   }
 }
 
@@ -70,6 +78,9 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
       if (response.ok) {
         const fetchedGraphs = await response.json()
         setGraphs(fetchedGraphs)
+        
+        // Cache the graphs for later use
+        localStorage.setItem('cachedGraphs', JSON.stringify(fetchedGraphs))
         
         // Convert graph layouts to react-grid-layout format
         const newLayouts: { [key: string]: Layout[] } = {
@@ -106,7 +117,23 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
 
     const dataPromises = graphList.map(async (graph) => {
       try {
-        const response = await fetch(`/api/graphs/${graph.id}/data?limit=100`)
+        // Use a larger limit for multi-sensor graphs to get smoother lines
+        const isMultiSensor = graph.sensors && graph.sensors.length > 0;
+        const dataLimit = isMultiSensor ? 300 : 100;
+        
+        // Include time range in the data fetch request
+        const timeParam = graph.time_range ? `&timeRange=${graph.time_range}` : '';
+        
+        // Add custom time range parameters if applicable
+        const customTimeParams = graph.time_range === 'custom' && graph.custom_start_time && graph.custom_end_time 
+          ? `&start=${encodeURIComponent(graph.custom_start_time)}&end=${encodeURIComponent(graph.custom_end_time)}` 
+          : '';
+        
+        // Fetch data with all relevant parameters
+        const url = `/api/graphs/${graph.id}/data?limit=${dataLimit}${timeParam}${customTimeParams}`;
+        console.log(`Fetching data for graph ${graph.id} with URL: ${url}`);
+        
+        const response = await fetch(url);
         if (response.ok) {
           const result = await response.json()
           
@@ -120,24 +147,100 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
                 data: graph.metrics.reduce((acc, metric) => {
                   acc[metric] = []
                   return acc
-                }, {} as { [metric: string]: number[] })
+                }, {} as { [metric: string]: number[] }),
+                sensor_metadata: result.sensor_metadata || {}
               }
             }
           }
 
+          console.log(`DEBUG: Graph ${graph.id} - Raw result:`, result)
+          console.log(`DEBUG: Graph ${graph.id} - Data points:`, result.data.length)
+          console.log(`DEBUG: Graph ${graph.id} - First data point:`, result.data[0])
+          console.log(`DEBUG: Graph ${graph.id} - Multi-sensor:`, result.multi_sensor)
+
+          // Make absolutely sure we have data
+          if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
+            console.warn(`No data points for graph ${graph.id}`)
+            return {
+              graphId: graph.id,
+              data: {
+                labels: [],
+                data: {},
+                sensor_metadata: result.sensor_metadata || {}
+              }
+            }
+          }
+
+          console.log(`DEBUG: Graph ${graph.id} - Raw result:`, JSON.stringify(result).substring(0, 200) + '...')
+          console.log(`DEBUG: Graph ${graph.id} - Data points:`, result.data.length)
+          console.log(`DEBUG: Graph ${graph.id} - First data point:`, JSON.stringify(result.data[0]))
+
+          // Generate time labels from timestamps
+          const labels = result.data.map((point: any) => {
+            if (!point.timestamp) return '';
+            try {
+              return new Date(point.timestamp).toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              });
+            } catch (e) {
+              console.error(`Invalid timestamp in data for graph ${graph.id}:`, point.timestamp);
+              return '';
+            }
+          });
+
+          // Process data series based on whether this is multi-sensor or not
+          let processedData: { [key: string]: (number | null)[] } = {};
+
+          try {
+            // Check if this is a multi-sensor graph
+            const isMultiSensor = result.multi_sensor || 
+              (graph.sensors && graph.sensors.length > 0);
+            
+            console.log(`DEBUG: Graph ${graph.id} - Is multi-sensor:`, isMultiSensor);
+            
+            if (isMultiSensor && graph.sensors) {
+              // Multi-sensor: create data series for each sensor-metric combination
+              
+              // Initialize all sensor-metric combinations
+              graph.sensors.forEach((sensorSelection: any) => {
+                sensorSelection.metrics.forEach((metric: string) => {
+                  const key = `${sensorSelection.sensor_id}_${metric}`;
+                  processedData[key] = result.data.map((point: any) => {
+                    const value = point[key];
+                    return value !== undefined ? value : null;
+                  });
+                });
+              });
+              
+              console.log(`DEBUG: Graph ${graph.id} - Multi-sensor processed data:`, 
+                Object.keys(processedData).map(k => `${k}: ${processedData[k].length} points`));
+            } else {
+              // Single sensor: process each metric separately
+              graph.metrics.forEach(metric => {
+                processedData[metric] = result.data.map((point: any) => {
+                  const value = point[metric];
+                  return value !== undefined ? value : null;
+                });
+                const nonNullCount = processedData[metric].filter(val => val !== null).length;
+                console.log(`DEBUG: Graph ${graph.id} - Metric ${metric} has ${nonNullCount} non-null values out of ${processedData[metric].length}`);
+              });
+            }
+          } catch (error) {
+            console.error(`Error processing data for graph ${graph.id}:`, error);
+            processedData = {};
+          }
+
+          // Check if we have sensor metadata and include it in the returned data
+          console.log(`DEBUG: Graph ${graph.id} - Sensor metadata available:`, 
+            result.sensor_metadata ? Object.keys(result.sensor_metadata) : 'none');
+            
           return {
             graphId: graph.id,
             data: {
-              labels: result.data.map((point: any) => 
-                new Date(point.timestamp).toLocaleTimeString('en-US', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })
-              ),
-              data: graph.metrics.reduce((acc, metric) => {
-                acc[metric] = result.data.map((point: any) => point[metric] || 0)
-                return acc
-              }, {} as { [metric: string]: number[] })
+              labels: labels,
+              data: processedData,
+              sensor_metadata: result.sensor_metadata || {} // Include sensor metadata in the response
             }
           }
         } else {
@@ -150,12 +253,13 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
               data: graph.metrics.reduce((acc, metric) => {
                 acc[metric] = []
                 return acc
-              }, {} as { [metric: string]: number[] })
+              }, {} as { [metric: string]: number[] }),
+              sensor_metadata: {} // Empty metadata for error case
             }
           }
         }
       } catch (error) {
-        console.error(`Failed to load data for graph ${graph.id}:`, error)
+        console.error(`Error fetching data for graph ${graph.id}:`, error)
         // Return empty data structure on error
         return {
           graphId: graph.id,
@@ -255,6 +359,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
   // Update graph configuration
   const handleUpdateGraph = useCallback(async (id: string, updates: Partial<GraphConfig>) => {
     try {
+      setRefreshing(true); // Show loading indicator
       const response = await fetch(`/api/graphs/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -263,16 +368,36 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
 
       if (response.ok) {
         const updatedGraph = await response.json()
-        // Update local state
-        setGraphs(prev => prev.map(graph => 
+        // Update local state with the updated graph
+        const updatedGraphs = graphs.map(graph => 
           graph.id === id ? updatedGraph : graph
-        ))
+        )
+        setGraphs(updatedGraphs)
         
-        await loadAllGraphData(graphs)
+        // Use the updated graphs array directly instead of the stale one from closure
+        await loadAllGraphData(updatedGraphs)
+        
+        // Clear graph data for this specific graph to force a fresh load
+        setGraphData(prevData => {
+          const newData = { ...prevData };
+          delete newData[id]; // Remove cached data to force reload
+          return newData;
+        });
+        
+        // Force another data load after a short delay to ensure backend has processed updates
+        setTimeout(async () => {
+          console.log(`Force refreshing data for updated graph ${id}`);
+          await loadAllGraphData(updatedGraphs);
+          setRefreshing(false);
+        }, 1000);
+        
         setEditingGraph(null)
+      } else {
+        setRefreshing(false);
       }
     } catch (error) {
       console.error('Failed to update graph:', error)
+      setRefreshing(false);
     }
   }, [loadAllGraphData, graphs])
 
@@ -349,21 +474,33 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
     }
   }, [graphs, loadAllGraphData])
 
-  // WebSocket updates
+  // WebSocket updates - throttled for performance
   useEffect(() => {
     if (lastUpdate && lastUpdate.type === 'sensor_update') {
-      // Update graph data with new sensor readings
-      loadAllGraphData(graphs)
+      // Throttle updates to reduce API calls
+      const throttleTimeout = setTimeout(() => {
+        loadAllGraphData(graphs)
+      }, 5000) // 5 second delay
+      
+      return () => clearTimeout(throttleTimeout)
     }
   }, [lastUpdate, graphs, loadAllGraphData])
 
-  // Initial load with retry mechanism
+  // Initial load with retry mechanism and forced refresh
   useEffect(() => {
     const initializeApp = async () => {
       let retries = 3
       while (retries > 0) {
         try {
           await loadGraphs()
+          
+          // Force refresh the data after a short delay to ensure everything is properly loaded
+          setTimeout(() => {
+            console.log('Force refreshing graph data...')
+            const graphs = JSON.parse(localStorage.getItem('cachedGraphs') || '[]')
+            loadAllGraphData(graphs)
+          }, 1000)
+          
           break // Success, exit retry loop
         } catch (error) {
           console.error('Failed to initialize app, retrying...', error)
@@ -376,19 +513,19 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
     }
     
     initializeApp()
-  }, [loadGraphs])
+  }, [loadGraphs, loadAllGraphData])
 
-  // Auto-refresh data every 30 seconds
-  useEffect(() => {
-    if (graphs.length === 0) return
+  // Auto-refresh disabled for performance
+  // useEffect(() => {
+  //   if (graphs.length === 0) return
 
-    const interval = setInterval(() => {
-      console.log('Auto-refreshing graph data...')
-      loadAllGraphData(graphs)
-    }, 30000) // 30 seconds
+  //   const interval = setInterval(() => {
+  //     console.log('Auto-refreshing graph data...')
+  //     loadAllGraphData(graphs)
+  //   }, 30000) // 30 seconds
 
-    return () => clearInterval(interval)
-  }, [graphs, loadAllGraphData])
+  //   return () => clearInterval(interval)
+  // }, [graphs, loadAllGraphData])
 
   if (loading) {
     return (
@@ -526,7 +663,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
       )}
       
       {/* Graph Builder Modal */}
-      <GraphBuilderModal
+      <GraphBuilderModalEnhanced
         isOpen={showGraphBuilder}
         onSave={handleCreateGraph}
         onClose={() => setShowGraphBuilder(false)}

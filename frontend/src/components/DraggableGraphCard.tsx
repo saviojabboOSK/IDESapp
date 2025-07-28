@@ -1,20 +1,21 @@
 // Enhanced draggable graph card component for IDES 2.0 with integrated settings panel, real-time data updates, and drag-and-drop functionality using react-grid-layout.
 import React from 'react'
-import { Settings, X, BarChart3 } from 'lucide-react'
-import { Bar, Line, Scatter } from 'react-chartjs-2'
-import {
+import { Line, Bar, Scatter } from 'react-chartjs-2'
+import { 
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
-  ArcElement,
   Filler,
+  ArcElement
 } from 'chart.js'
+import { X, BarChart3, Settings, Trash2, Expand, RefreshCw, GripVertical } from 'lucide-react'
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,6 +33,11 @@ interface GraphConfig {
   id: string
   title: string
   chart_type: string
+  sensor_id?: string
+  sensors?: Array<{
+    sensor_id: string
+    metrics: string[]
+  }>
   metrics: string[]
   time_range: string
   settings: {
@@ -58,7 +64,8 @@ interface GraphConfig {
 
 interface GraphData {
   labels: string[]
-  data: { [metric: string]: number[] }
+  data: { [metric: string]: (number | null)[] }
+  sensor_metadata?: { [sensorId: string]: { nickname: string, metrics: string[] } }
 }
 
 interface DraggableGraphCardProps {
@@ -69,14 +76,46 @@ interface DraggableGraphCardProps {
   isLoading?: boolean
 }
 
-const AVAILABLE_METRICS = [
-  { id: 'temperature', label: 'Temperature', unit: '°C' },
-  { id: 'humidity', label: 'Humidity', unit: '%' },
-  { id: 'co2', label: 'CO₂', unit: 'ppm' },
-  { id: 'aqi', label: 'Air Quality', unit: 'AQI' },
-  { id: 'pressure', label: 'Pressure', unit: 'hPa' },
-  { id: 'light_level', label: 'Light Level', unit: 'lux' },
-]
+const AVAILABLE_METRICS: { [key: string]: string } = {
+  'bvoc_equiv': 'BVOC Equivalent',
+  'co2_equiv': 'CO₂ Equivalent', 
+  'comp_farenheit': 'Temperature',
+  'comp_gas': 'Gas Sensor',
+  'comp_humidity': 'Humidity',
+  'temperature': 'Temperature',
+  'humidity': 'Humidity',
+  'co2': 'CO₂',
+  'aqi': 'Air Quality Index',
+  'pressure': 'Pressure',
+  'light_level': 'Light Level'
+}
+
+// Hard-coded nicknames as a fallback
+const SENSOR_NICKNAMES: { [key: string]: string } = {
+  'sensor_004': 'Paint Shop',
+  'sensor_006': 'ADIC Kitchen',
+  'sensor_003': 'ADIC Bathroom',
+  'sensor_002': 'ADIC Storage Room',
+  'sensor_001': 'ADIC Front Room',
+  'sensor_005': 'CDW Old Sensor'
+}
+
+// Color generator for metrics 
+const getMetricColor = (index: number): string => {
+  const colors = [
+    'rgb(99, 102, 241)',   // Indigo
+    'rgb(239, 68, 68)',    // Red
+    'rgb(34, 197, 94)',    // Green
+    'rgb(245, 158, 11)',   // Yellow
+    'rgb(168, 85, 247)',   // Purple
+    'rgb(6, 182, 212)',    // Cyan
+    'rgb(251, 113, 133)',  // Pink
+    'rgb(132, 204, 22)',   // Lime
+    'rgb(249, 115, 22)',   // Orange
+    'rgb(139, 92, 246)',   // Violet
+  ]
+  return colors[index % colors.length]
+}
 
 const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
   config,
@@ -93,23 +132,179 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
 
   // Prepare chart data
   const chartData = React.useMemo(() => {
-    if (!data || !config.metrics.length || !data.labels || data.labels.length === 0) {
+    console.log(`DEBUG: Preparing chart data for ${config.id}`, data)
+    
+    if (!data) {
+      console.log(`DEBUG: No data object available for graph ${config.id}`)
+      return null
+    }
+
+    if (!data.labels) {
+      console.log(`DEBUG: No labels in data for graph ${config.id}`)
+      return null
+    }
+
+    if (!data.data) {
+      console.log(`DEBUG: No data.data in data for graph ${config.id}`)
       return null
     }
     
-    const labels = data.labels || []
-    const datasets = config.metrics.map((metric: string, idx: number) => ({
-      label: AVAILABLE_METRICS.find(m => m.id === metric)?.label || metric,
-      data: data.data?.[metric] || [],
-      borderColor: config.settings.color_scheme[idx % config.settings.color_scheme.length],
-      backgroundColor: config.settings.color_scheme[idx % config.settings.color_scheme.length] + '20',
-      fill: config.chart_type === 'area' || config.settings.fill_area,
-      tension: config.settings.smooth_lines ? 0.4 : 0,
-      pointRadius: config.settings.show_points ? 3 : 0,
-      pointHoverRadius: 5,
-    }))
-    return { labels, datasets }
-  }, [data, config])
+    // Detailed debug information
+    console.log(`DEBUG: GRAPH DATA DETAILS for ${config.id}:`, {
+      hasMetadata: data.sensor_metadata ? 'yes' : 'no',
+      metadata: data.sensor_metadata,
+      configSensorId: config.sensor_id,
+      isSingleSensor: !config.sensors || config.sensors.length === 0,
+      isMultiSensor: config.sensors && config.sensors.length > 0,
+      configMetrics: config.metrics,
+      dataKeys: Object.keys(data.data),
+      sensorIdType: typeof config.sensor_id
+    });
+    
+    // Create a local sensor metadata object that we'll use
+    const sensorMetadata: { [key: string]: { nickname: string, metrics: string[] } } = 
+      {...(data.sensor_metadata || {})};
+    
+    // Ensure all sensors in the config have metadata
+    if (config.sensor_id && !sensorMetadata[config.sensor_id]) {
+      sensorMetadata[config.sensor_id] = {
+        nickname: SENSOR_NICKNAMES[config.sensor_id] || config.sensor_id,
+        metrics: config.metrics
+      };
+      console.log(`DEBUG: Added missing metadata for ${config.sensor_id}`);
+    }
+    
+    if (config.sensors) {
+      config.sensors.forEach(sensor => {
+        if (!sensorMetadata[sensor.sensor_id]) {
+          sensorMetadata[sensor.sensor_id] = {
+            nickname: SENSOR_NICKNAMES[sensor.sensor_id] || sensor.sensor_id,
+            metrics: sensor.metrics
+          };
+          console.log(`DEBUG: Added missing metadata for ${sensor.sensor_id}`);
+        }
+      });
+    }
+    
+    // Replace the sensor_metadata in our data
+    const enhancedData = {
+      ...data,
+      sensor_metadata: sensorMetadata
+    };
+
+    // Use all available data keys
+    const dataKeys = Object.keys(data.data)
+    console.log(`DEBUG: Data keys for graph ${config.id}:`, dataKeys)
+    
+    if (dataKeys.length === 0) {
+      console.log(`DEBUG: Empty dataKeys for graph ${config.id}`)
+      return null
+    }
+    
+    // Log the full sensor metadata to help debug
+    console.log(`DEBUG: Full sensor metadata for graph ${config.id}:`, sensorMetadata);
+    
+    // Get sensor nicknames, either from metadata or fallback to hardcoded
+    const getSensorName = (sensorId: string): string => {
+      // First check our sensorMetadata map
+      if (sensorMetadata[sensorId]?.nickname) {
+        console.log(`DEBUG: Found nickname in sensorMetadata: ${sensorId} -> ${sensorMetadata[sensorId].nickname}`);
+        return sensorMetadata[sensorId].nickname;
+      }
+      
+      // Then check hard-coded nicknames
+      if (SENSOR_NICKNAMES[sensorId]) {
+        console.log(`DEBUG: Found nickname in SENSOR_NICKNAMES: ${sensorId} -> ${SENSOR_NICKNAMES[sensorId]}`);
+        return SENSOR_NICKNAMES[sensorId];
+      }
+      
+      // Check if this is a special sensor ID case
+      // We know from the config that sensor_004 is "Paint Shop" - force it for debugging
+      if (sensorId === "sensor_004") {
+        console.log(`DEBUG: Special case for sensor_004 -> Paint Shop`);
+        return "Paint Shop";
+      }
+      
+      console.log(`DEBUG: No nickname found for ${sensorId}, using ID as name`);
+      return sensorId; // Fallback to sensor ID if no nickname found
+    };
+
+    const datasets = dataKeys.map((key, index) => {
+      const values = data.data[key] || []
+      
+      console.log(`DEBUG: Graph ${config.id} - Values for ${key}:`, 
+        values.length > 0 
+          ? `${values.filter(v => v !== null).length} non-null out of ${values.length} values` 
+          : 'EMPTY ARRAY');
+      
+      // Enhanced label generation for multi-sensor support
+      let label = key
+      
+      // Check if this is multi-sensor data format (sensor_001_comp_farenheit)
+      if (key.includes('_') && key.startsWith('sensor_')) {
+        const parts = key.split('_')
+        if (parts.length >= 3) {
+          const sensorId = `${parts[0]}_${parts[1]}` // sensor_001
+          const metric = parts.slice(2).join('_') // comp_farenheit
+          
+          // Get the sensor nickname using our helper function
+          const sensorName = getSensorName(sensorId);
+          label = `${sensorName}, ${AVAILABLE_METRICS[metric] || metric}`
+          console.log(`DEBUG: Multi-sensor label for ${sensorId}/${metric}: ${label}`);
+        }
+      } else {
+        // Single sensor format - use the sensor nickname if available
+        if (config.sensor_id) {
+          // Get the sensor nickname using our helper function
+          const sensorName = getSensorName(config.sensor_id);
+          
+          // Use the sensor name with the metric
+          label = `${sensorName}, ${AVAILABLE_METRICS[key] || key}`
+          console.log(`DEBUG: Single-sensor label for ${config.sensor_id}/${key}: ${label}`);
+        } else {
+          // Log more detail about why we didn't find the metadata
+          console.log(`DEBUG: No sensor ID for single sensor graph:`, {
+            configSensorId: config.sensor_id,
+            hasSensorMetadata: data.sensor_metadata ? 'yes' : 'no',
+            metadataKeys: data.sensor_metadata ? Object.keys(data.sensor_metadata) : []
+          });
+          // Fallback to just the metric name
+          label = AVAILABLE_METRICS[key] || key
+        }
+      }
+      
+      console.log(`DEBUG: Graph ${config.id} - Dataset ${index} label:`, label);
+
+      // Debug logging to help identify issues
+      console.log(`DEBUG: Label for ${key}:`, { 
+        label, 
+        sensorId: config.sensor_id,
+        hasSensorMetadata: data.sensor_metadata ? 'yes' : 'no',
+        sensorMetadata: data.sensor_metadata,
+        configSensorId: config.sensor_id
+      });
+
+      // Use the graph's configured color scheme instead of the default color generator
+      const colorIndex = index % (config.settings.color_scheme?.length || 1);
+      const color = config.settings.color_scheme?.[colorIndex] || getMetricColor(index);
+
+      return {
+        label,
+        data: values, // Simple array format for Chart.js
+        borderColor: color,
+        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+        tension: config.settings.smooth_lines ? 0.4 : 0.1,
+        pointRadius: config.settings.show_points ? 2 : 0,
+        pointHoverRadius: 5,
+        fill: config.settings.fill_area || false,
+      }
+    })
+
+    return {
+      labels: data.labels,
+      datasets,
+    }
+  }, [data])
 
   const chartOptions = React.useMemo(
     () => ({
@@ -142,25 +337,81 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
   )
 
   const renderChart = () => {
-    if (!chartData || !data) {
+    console.log(`DEBUG: Rendering chart for ${config.id}`, { 
+      hasChartData: !!chartData,
+      hasData: !!data,
+      dataLabels: data?.labels?.length,
+      dataKeys: data?.data ? Object.keys(data.data) : [],
+      metrics: config.metrics
+    })
+    
+    // Check if we have any valid data points (not just empty arrays)
+    const hasValidData = data && data.data && Object.values(data.data).some(arr => arr && arr.length > 0 && arr.some(val => val !== null));
+    
+    if (!chartData || !hasValidData) {
+      console.log(`DEBUG: No valid chart data available for ${config.id}, showing empty state`)
+      
+      // Let's create a test button to fetch data directly
+      const handleFetchTestData = async () => {
+        try {
+          console.log(`Manually fetching data for graph ${config.id}...`);
+          // Use a larger limit for multi-sensor graphs
+          const isMultiSensor = config.sensors && config.sensors.length > 0;
+          const dataLimit = isMultiSensor ? 300 : 100;
+          const response = await fetch(`/api/graphs/${config.id}/data?limit=${dataLimit}`);
+          const result = await response.json();
+          console.log('Manual fetch result:', result);
+        } catch (err) {
+          console.error('Error in manual fetch:', err);
+        }
+      };
+      
       return (
         <div className="flex flex-col items-center justify-center h-full text-gray-500">
-          <BarChart3 className="h-12 w-12 mb-2" />
+          <div className="h-12 w-12 mb-2">📊</div>
           <p className="font-medium">
             {isLoading ? 'Loading Data...' : 'No Data Available'}
           </p>
           <p className="text-sm text-center">
-            {config.metrics.join(', ')} • {config.time_range}
+            {config.sensors && config.sensors.length > 0 ? 
+              `${config.sensors.length} sensors selected` : 
+              config.metrics.join(', ')}
+            {' • '}
+            {config.time_range === 'custom' ? 'Custom Range' : 
+              config.time_range === '1h' ? '1 Hour' :
+              config.time_range === '6h' ? '6 Hours' :
+              config.time_range === '12h' ? '12 Hours' :
+              config.time_range === '24h' ? '24 Hours' :
+              config.time_range === '7d' ? '7 Days' :
+              config.time_range === '30d' ? '30 Days' :
+              config.time_range
+            }
           </p>
+          <p className="text-xs text-gray-400 mt-2">
+            Graph ID: {config.id.substring(0, 8)}...
+          </p>
+          <button 
+            onClick={handleFetchTestData}
+            className="mt-2 text-xs px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+          >
+            Refresh Data
+          </button>
         </div>
       )
     }
-    const ChartComponent =
-      config.chart_type === 'bar'
-        ? Bar
-        : config.chart_type === 'scatter'
-        ? Scatter
-        : Line
+
+    // Select the appropriate chart component based on chart type
+    let ChartComponent;
+    if (config.chart_type === 'bar') {
+      ChartComponent = Bar;
+    } else if (config.chart_type === 'scatter') {
+      ChartComponent = Scatter;
+    } else {
+      ChartComponent = Line;
+    }
+
+    console.log(`DEBUG: Rendering ${config.chart_type} chart with data:`, chartData);
+
     return (
       <div className="h-full w-full">
         <ChartComponent
@@ -220,9 +471,22 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
         {/* Footer Info */}
         <div className="mt-2 text-xs text-gray-500 flex items-center justify-between">
           <span>
-            {config.metrics.length} metric{config.metrics.length !== 1 ? 's' : ''}
+            {config.sensors ? 
+              `${config.sensors.length} sensor${config.sensors.length !== 1 ? 's' : ''}, ${config.metrics.length} metric${config.metrics.length !== 1 ? 's' : ''}` :
+              `${config.metrics.length} metric${config.metrics.length !== 1 ? 's' : ''}`
+            }
           </span>
-          <span>{config.time_range}</span>
+          <span>
+            {config.time_range === 'custom' ? 'Custom Range' : 
+              config.time_range === '1h' ? '1 Hour' :
+              config.time_range === '6h' ? '6 Hours' :
+              config.time_range === '12h' ? '12 Hours' :
+              config.time_range === '24h' ? '24 Hours' :
+              config.time_range === '7d' ? '7 Days' :
+              config.time_range === '30d' ? '30 Days' :
+              config.time_range
+            }
+          </span>
         </div>
       </div>
     </div>

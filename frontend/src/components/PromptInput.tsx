@@ -29,7 +29,6 @@ const PromptInput: React.FC<PromptInputProps> = ({ onSubmit }) => {
   const suggestions = [
     "Show me today's temperature and humidity",
     "Compare CO₂ levels over the last week",
-    "Forecast temperature for the next 24 hours",
     "What's the air quality trend?",
     "Create a chart showing all metrics",
     "Are there any concerning patterns?"
