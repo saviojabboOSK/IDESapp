@@ -163,6 +163,12 @@ const GraphBuilderModalEnhanced: React.FC<GraphBuilderModalEnhancedProps> = ({
     return sensors.find(s => s.id === sensor_id)
   }
 
+  const getMetricColor = (sensorIndex: number, metricIndex: number) => {
+    // Calculate color index based on sensor and metric position
+    const colorIndex = (sensorIndex * 5 + metricIndex) % config.settings.color_scheme.length
+    return config.settings.color_scheme[colorIndex]
+  }
+
   const generateTitle = () => {
     const validSelections = sensorSelections.filter(s => s.sensor_id && s.metrics.length > 0)
     if (validSelections.length === 0) return ''
@@ -320,13 +326,34 @@ const GraphBuilderModalEnhanced: React.FC<GraphBuilderModalEnhancedProps> = ({
                     {/* Metrics Selection */}
                     {selection.sensor_id && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Available Metrics
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Available Metrics
+                          </label>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => {
+                                const allMetrics = getSelectedSensor(selection.sensor_id)?.available_metrics || []
+                                updateSensorMetrics(index, allMetrics)
+                              }}
+                              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              onClick={() => updateSensorMetrics(index, [])}
+                              className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {getSelectedSensor(selection.sensor_id)?.available_metrics.map((metric) => {
+                          {getSelectedSensor(selection.sensor_id)?.available_metrics.map((metric: string, metricIndex: number) => {
                             const metricInfo = METRIC_CONFIG[metric] || { label: metric, unit: 'value', color: '#6b7280' }
                             const isSelected = selection.metrics.includes(metric)
+                            // Use consistent color from the graph's color scheme
+                            const metricColor = getMetricColor(index, metricIndex)
                             
                             return (
                               <button
@@ -346,7 +373,7 @@ const GraphBuilderModalEnhanced: React.FC<GraphBuilderModalEnhancedProps> = ({
                                 <div className="flex items-center">
                                   <div
                                     className="w-3 h-3 rounded-full mr-2"
-                                    style={{ backgroundColor: metricInfo.color }}
+                                    style={{ backgroundColor: isSelected ? metricColor : '#d1d5db' }}
                                   />
                                   <Activity className="h-4 w-4 mr-2 text-gray-500" />
                                 </div>

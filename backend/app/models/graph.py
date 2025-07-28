@@ -48,6 +48,11 @@ class GraphLayout(BaseModel):
     y: int = Field(default=0, description="Grid Y position")
     width: int = Field(default=4, description="Grid width units")
     height: int = Field(default=3, description="Grid height units")
+
+class SensorSelection(BaseModel):
+    """Sensor selection for multi-sensor graphs."""
+    sensor_id: str = Field(..., description="Sensor identifier")
+    metrics: List[str] = Field(default_factory=list, description="Selected metrics for this sensor")
     
 class GraphModel(BaseModel):
     """Complete graph configuration model for dashboard charts."""
@@ -57,6 +62,7 @@ class GraphModel(BaseModel):
     
     # New sensor-based structure
     sensor_id: Optional[str] = Field(default=None, description="Selected sensor ID")
+    sensors: Optional[List[SensorSelection]] = Field(default=None, description="Multi-sensor selections")
     metrics: List[str] = Field(..., description="List of sensor metrics to display")
     
     # Time range with custom options

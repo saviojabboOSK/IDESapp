@@ -1,20 +1,21 @@
 // Enhanced draggable graph card component for IDES 2.0 with integrated settings panel, real-time data updates, and drag-and-drop functionality using react-grid-layout.
 import React from 'react'
-import { Settings, X, BarChart3 } from 'lucide-react'
-import { Bar, Line, Scatter } from 'react-chartjs-2'
-import {
+import { Line, Bar, Scatter } from 'react-chartjs-2'
+import { 
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
-  ArcElement,
   Filler,
+  ArcElement
 } from 'chart.js'
+import { X, BarChart3, Settings, Trash2, Expand, RefreshCw, GripVertical } from 'lucide-react'
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,6 +33,11 @@ interface GraphConfig {
   id: string
   title: string
   chart_type: string
+  sensor_id?: string
+  sensors?: Array<{
+    sensor_id: string
+    metrics: string[]
+  }>
   metrics: string[]
   time_range: string
   settings: {
@@ -58,7 +64,8 @@ interface GraphConfig {
 
 interface GraphData {
   labels: string[]
-  data: { [metric: string]: number[] }
+  data: { [metric: string]: (number | null)[] }
+  sensor_metadata?: { [sensorId: string]: { nickname: string } }
 }
 
 interface DraggableGraphCardProps {
@@ -69,14 +76,36 @@ interface DraggableGraphCardProps {
   isLoading?: boolean
 }
 
-const AVAILABLE_METRICS = [
-  { id: 'temperature', label: 'Temperature', unit: '°C' },
-  { id: 'humidity', label: 'Humidity', unit: '%' },
-  { id: 'co2', label: 'CO₂', unit: 'ppm' },
-  { id: 'aqi', label: 'Air Quality', unit: 'AQI' },
-  { id: 'pressure', label: 'Pressure', unit: 'hPa' },
-  { id: 'light_level', label: 'Light Level', unit: 'lux' },
-]
+const AVAILABLE_METRICS: { [key: string]: string } = {
+  'bvoc_equiv': 'BVOC Equivalent',
+  'co2_equiv': 'CO₂ Equivalent', 
+  'comp_farenheit': 'Temperature',
+  'comp_gas': 'Gas Sensor',
+  'comp_humidity': 'Humidity',
+  'temperature': 'Temperature',
+  'humidity': 'Humidity',
+  'co2': 'CO₂',
+  'aqi': 'Air Quality Index',
+  'pressure': 'Pressure',
+  'light_level': 'Light Level'
+}
+
+// Color generator for metrics 
+const getMetricColor = (index: number): string => {
+  const colors = [
+    'rgb(99, 102, 241)',   // Indigo
+    'rgb(239, 68, 68)',    // Red
+    'rgb(34, 197, 94)',    // Green
+    'rgb(245, 158, 11)',   // Yellow
+    'rgb(168, 85, 247)',   // Purple
+    'rgb(6, 182, 212)',    // Cyan
+    'rgb(251, 113, 133)',  // Pink
+    'rgb(132, 204, 22)',   // Lime
+    'rgb(249, 115, 22)',   // Orange
+    'rgb(139, 92, 246)',   // Violet
+  ]
+  return colors[index % colors.length]
+}
 
 const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
   config,
@@ -93,23 +122,80 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
 
   // Prepare chart data
   const chartData = React.useMemo(() => {
-    if (!data || !config.metrics.length || !data.labels || data.labels.length === 0) {
+    console.log(`DEBUG: Preparing chart data for ${config.id}`, data)
+    
+    if (!data) {
+      console.log(`DEBUG: No data object available for graph ${config.id}`)
       return null
     }
+
+    if (!data.labels) {
+      console.log(`DEBUG: No labels in data for graph ${config.id}`)
+      return null
+    }
+
+    if (!data.data) {
+      console.log(`DEBUG: No data.data in data for graph ${config.id}`)
+      return null
+    }
+
+    // Use all available data keys
+    const dataKeys = Object.keys(data.data)
+    console.log(`DEBUG: Data keys for graph ${config.id}:`, dataKeys)
     
-    const labels = data.labels || []
-    const datasets = config.metrics.map((metric: string, idx: number) => ({
-      label: AVAILABLE_METRICS.find(m => m.id === metric)?.label || metric,
-      data: data.data?.[metric] || [],
-      borderColor: config.settings.color_scheme[idx % config.settings.color_scheme.length],
-      backgroundColor: config.settings.color_scheme[idx % config.settings.color_scheme.length] + '20',
-      fill: config.chart_type === 'area' || config.settings.fill_area,
-      tension: config.settings.smooth_lines ? 0.4 : 0,
-      pointRadius: config.settings.show_points ? 3 : 0,
-      pointHoverRadius: 5,
-    }))
-    return { labels, datasets }
-  }, [data, config])
+    if (dataKeys.length === 0) {
+      console.log(`DEBUG: Empty dataKeys for graph ${config.id}`)
+      return null
+    }
+
+    const datasets = dataKeys.map((key, index) => {
+      const values = data.data[key] || []
+      
+      console.log(`DEBUG: Graph ${config.id} - Values for ${key}:`, 
+        values.length > 0 
+          ? `${values.filter(v => v !== null).length} non-null out of ${values.length} values` 
+          : 'EMPTY ARRAY');
+      
+      // Enhanced label generation for multi-sensor support
+      let label = key
+      
+      // Check if this is multi-sensor data format (sensor_001_comp_farenheit)
+      if (key.includes('_') && key.startsWith('sensor_')) {
+        const parts = key.split('_')
+        if (parts.length >= 3) {
+          const sensorId = `${parts[0]}_${parts[1]}` // sensor_001
+          const metric = parts.slice(2).join('_') // comp_farenheit
+          // Use sensor metadata if available, otherwise format nicely
+          if (data.sensor_metadata && data.sensor_metadata[sensorId]) {
+            const sensorName = data.sensor_metadata[sensorId].nickname
+            label = `${sensorName}, ${AVAILABLE_METRICS[metric] || metric}`
+          } else {
+            label = `${sensorId} ${AVAILABLE_METRICS[metric] || metric}`
+          }
+        }
+      } else {
+        // Single sensor format - just use the metric name
+        label = AVAILABLE_METRICS[key] || key
+      }
+      
+      console.log(`DEBUG: Graph ${config.id} - Dataset ${index} label:`, label);
+
+      return {
+        label,
+        data: values, // Simple array format for Chart.js
+        borderColor: getMetricColor(index),
+        backgroundColor: getMetricColor(index).replace('rgb', 'rgba').replace(')', ', 0.1)'),
+        tension: 0.1,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+      }
+    })
+
+    return {
+      labels: data.labels,
+      datasets,
+    }
+  }, [data])
 
   const chartOptions = React.useMemo(
     () => ({
@@ -142,25 +228,66 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
   )
 
   const renderChart = () => {
-    if (!chartData || !data) {
+    console.log(`DEBUG: Rendering chart for ${config.id}`, { 
+      hasChartData: !!chartData,
+      hasData: !!data,
+      dataLabels: data?.labels?.length,
+      dataKeys: data?.data ? Object.keys(data.data) : [],
+      metrics: config.metrics
+    })
+    
+    // Check if we have any valid data points (not just empty arrays)
+    const hasValidData = data && data.data && Object.values(data.data).some(arr => arr && arr.length > 0 && arr.some(val => val !== null));
+    
+    if (!chartData || !hasValidData) {
+      console.log(`DEBUG: No valid chart data available for ${config.id}, showing empty state`)
+      
+      // Let's create a test button to fetch data directly
+      const handleFetchTestData = async () => {
+        try {
+          console.log(`Manually fetching data for graph ${config.id}...`);
+          const response = await fetch(`/api/graphs/${config.id}/data?limit=30`);
+          const result = await response.json();
+          console.log('Manual fetch result:', result);
+        } catch (err) {
+          console.error('Error in manual fetch:', err);
+        }
+      };
+      
       return (
         <div className="flex flex-col items-center justify-center h-full text-gray-500">
-          <BarChart3 className="h-12 w-12 mb-2" />
+          <div className="h-12 w-12 mb-2">📊</div>
           <p className="font-medium">
             {isLoading ? 'Loading Data...' : 'No Data Available'}
           </p>
           <p className="text-sm text-center">
             {config.metrics.join(', ')} • {config.time_range}
           </p>
+          <p className="text-xs text-gray-400 mt-2">
+            Graph ID: {config.id.substring(0, 8)}...
+          </p>
+          <button 
+            onClick={handleFetchTestData}
+            className="mt-2 text-xs px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+          >
+            Debug: Test API
+          </button>
         </div>
       )
     }
-    const ChartComponent =
-      config.chart_type === 'bar'
-        ? Bar
-        : config.chart_type === 'scatter'
-        ? Scatter
-        : Line
+
+    // Select the appropriate chart component based on chart type
+    let ChartComponent;
+    if (config.chart_type === 'bar') {
+      ChartComponent = Bar;
+    } else if (config.chart_type === 'scatter') {
+      ChartComponent = Scatter;
+    } else {
+      ChartComponent = Line;
+    }
+
+    console.log(`DEBUG: Rendering ${config.chart_type} chart with data:`, chartData);
+
     return (
       <div className="h-full w-full">
         <ChartComponent
