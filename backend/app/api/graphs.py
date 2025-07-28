@@ -193,7 +193,7 @@ async def get_graph_data(
     graph_id: str,
     start_time: Optional[datetime] = None,
     end_time: Optional[datetime] = None,
-    limit: int = 100  # Reduced from 5000 to 100 for better performance
+    limit: int = 1000  # Increased from 100 to 1000 for smoother graphs
 ):
     """Get historical data for specific graph with time range filtering."""
     graph = await load_graph_from_file(graph_id)
@@ -261,8 +261,8 @@ async def get_graph_data(
                 # Convert to sorted list and limit
                 all_timestamps = sorted(list(all_timestamps))
                 if len(all_timestamps) > limit:
-                    # Sample evenly across the time range
-                    step = len(all_timestamps) // limit
+                    # Sample evenly across the time range, but ensure we get enough points for smooth rendering
+                    step = max(1, len(all_timestamps) // limit)
                     all_timestamps = all_timestamps[::step][:limit]
                     
                 print(f"Found {len(all_timestamps)} unique timestamps for synchronization")

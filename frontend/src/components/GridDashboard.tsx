@@ -116,7 +116,10 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
 
     const dataPromises = graphList.map(async (graph) => {
       try {
-        const response = await fetch(`/api/graphs/${graph.id}/data?limit=30`)
+        // Use a larger limit for multi-sensor graphs to get smoother lines
+        const isMultiSensor = graph.sensors && graph.sensors.length > 0;
+        const dataLimit = isMultiSensor ? 300 : 100;
+        const response = await fetch(`/api/graphs/${graph.id}/data?limit=${dataLimit}`)
         if (response.ok) {
           const result = await response.json()
           

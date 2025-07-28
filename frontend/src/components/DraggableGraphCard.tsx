@@ -185,9 +185,10 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
         data: values, // Simple array format for Chart.js
         borderColor: getMetricColor(index),
         backgroundColor: getMetricColor(index).replace('rgb', 'rgba').replace(')', ', 0.1)'),
-        tension: 0.1,
-        pointRadius: 2,
+        tension: config.settings.smooth_lines ? 0.4 : 0.1,
+        pointRadius: config.settings.show_points ? 2 : 0,
         pointHoverRadius: 5,
+        fill: config.settings.fill_area || false,
       }
     })
 
@@ -246,7 +247,10 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
       const handleFetchTestData = async () => {
         try {
           console.log(`Manually fetching data for graph ${config.id}...`);
-          const response = await fetch(`/api/graphs/${config.id}/data?limit=30`);
+          // Use a larger limit for multi-sensor graphs
+          const isMultiSensor = config.sensors && config.sensors.length > 0;
+          const dataLimit = isMultiSensor ? 300 : 100;
+          const response = await fetch(`/api/graphs/${config.id}/data?limit=${dataLimit}`);
           const result = await response.json();
           console.log('Manual fetch result:', result);
         } catch (err) {
