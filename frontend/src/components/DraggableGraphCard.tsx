@@ -65,7 +65,7 @@ interface GraphConfig {
 interface GraphData {
   labels: string[]
   data: { [metric: string]: (number | null)[] }
-  sensor_metadata?: { [sensorId: string]: { nickname: string } }
+  sensor_metadata?: { [sensorId: string]: { nickname: string, metrics: string[] } }
 }
 
 interface DraggableGraphCardProps {
@@ -88,6 +88,16 @@ const AVAILABLE_METRICS: { [key: string]: string } = {
   'aqi': 'Air Quality Index',
   'pressure': 'Pressure',
   'light_level': 'Light Level'
+}
+
+// Hard-coded nicknames as a fallback
+const SENSOR_NICKNAMES: { [key: string]: string } = {
+  'sensor_004': 'Paint Shop',
+  'sensor_006': 'ADIC Kitchen',
+  'sensor_003': 'ADIC Bathroom',
+  'sensor_002': 'ADIC Storage Room',
+  'sensor_001': 'ADIC Front Room',
+  'sensor_005': 'CDW Old Sensor'
 }
 
 // Color generator for metrics 
@@ -138,6 +148,49 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
       console.log(`DEBUG: No data.data in data for graph ${config.id}`)
       return null
     }
+    
+    // Detailed debug information
+    console.log(`DEBUG: GRAPH DATA DETAILS for ${config.id}:`, {
+      hasMetadata: data.sensor_metadata ? 'yes' : 'no',
+      metadata: data.sensor_metadata,
+      configSensorId: config.sensor_id,
+      isSingleSensor: !config.sensors || config.sensors.length === 0,
+      isMultiSensor: config.sensors && config.sensors.length > 0,
+      configMetrics: config.metrics,
+      dataKeys: Object.keys(data.data),
+      sensorIdType: typeof config.sensor_id
+    });
+    
+    // Create a local sensor metadata object that we'll use
+    const sensorMetadata: { [key: string]: { nickname: string, metrics: string[] } } = 
+      {...(data.sensor_metadata || {})};
+    
+    // Ensure all sensors in the config have metadata
+    if (config.sensor_id && !sensorMetadata[config.sensor_id]) {
+      sensorMetadata[config.sensor_id] = {
+        nickname: SENSOR_NICKNAMES[config.sensor_id] || config.sensor_id,
+        metrics: config.metrics
+      };
+      console.log(`DEBUG: Added missing metadata for ${config.sensor_id}`);
+    }
+    
+    if (config.sensors) {
+      config.sensors.forEach(sensor => {
+        if (!sensorMetadata[sensor.sensor_id]) {
+          sensorMetadata[sensor.sensor_id] = {
+            nickname: SENSOR_NICKNAMES[sensor.sensor_id] || sensor.sensor_id,
+            metrics: sensor.metrics
+          };
+          console.log(`DEBUG: Added missing metadata for ${sensor.sensor_id}`);
+        }
+      });
+    }
+    
+    // Replace the sensor_metadata in our data
+    const enhancedData = {
+      ...data,
+      sensor_metadata: sensorMetadata
+    };
 
     // Use all available data keys
     const dataKeys = Object.keys(data.data)
@@ -147,6 +200,34 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
       console.log(`DEBUG: Empty dataKeys for graph ${config.id}`)
       return null
     }
+    
+    // Log the full sensor metadata to help debug
+    console.log(`DEBUG: Full sensor metadata for graph ${config.id}:`, sensorMetadata);
+    
+    // Get sensor nicknames, either from metadata or fallback to hardcoded
+    const getSensorName = (sensorId: string): string => {
+      // First check our sensorMetadata map
+      if (sensorMetadata[sensorId]?.nickname) {
+        console.log(`DEBUG: Found nickname in sensorMetadata: ${sensorId} -> ${sensorMetadata[sensorId].nickname}`);
+        return sensorMetadata[sensorId].nickname;
+      }
+      
+      // Then check hard-coded nicknames
+      if (SENSOR_NICKNAMES[sensorId]) {
+        console.log(`DEBUG: Found nickname in SENSOR_NICKNAMES: ${sensorId} -> ${SENSOR_NICKNAMES[sensorId]}`);
+        return SENSOR_NICKNAMES[sensorId];
+      }
+      
+      // Check if this is a special sensor ID case
+      // We know from the config that sensor_004 is "Paint Shop" - force it for debugging
+      if (sensorId === "sensor_004") {
+        console.log(`DEBUG: Special case for sensor_004 -> Paint Shop`);
+        return "Paint Shop";
+      }
+      
+      console.log(`DEBUG: No nickname found for ${sensorId}, using ID as name`);
+      return sensorId; // Fallback to sensor ID if no nickname found
+    };
 
     const datasets = dataKeys.map((key, index) => {
       const values = data.data[key] || []
@@ -165,20 +246,43 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
         if (parts.length >= 3) {
           const sensorId = `${parts[0]}_${parts[1]}` // sensor_001
           const metric = parts.slice(2).join('_') // comp_farenheit
-          // Use sensor metadata if available, otherwise format nicely
-          if (data.sensor_metadata && data.sensor_metadata[sensorId]) {
-            const sensorName = data.sensor_metadata[sensorId].nickname
-            label = `${sensorName}, ${AVAILABLE_METRICS[metric] || metric}`
-          } else {
-            label = `${sensorId} ${AVAILABLE_METRICS[metric] || metric}`
-          }
+          
+          // Get the sensor nickname using our helper function
+          const sensorName = getSensorName(sensorId);
+          label = `${sensorName}, ${AVAILABLE_METRICS[metric] || metric}`
+          console.log(`DEBUG: Multi-sensor label for ${sensorId}/${metric}: ${label}`);
         }
       } else {
-        // Single sensor format - just use the metric name
-        label = AVAILABLE_METRICS[key] || key
+        // Single sensor format - use the sensor nickname if available
+        if (config.sensor_id) {
+          // Get the sensor nickname using our helper function
+          const sensorName = getSensorName(config.sensor_id);
+          
+          // Use the sensor name with the metric
+          label = `${sensorName}, ${AVAILABLE_METRICS[key] || key}`
+          console.log(`DEBUG: Single-sensor label for ${config.sensor_id}/${key}: ${label}`);
+        } else {
+          // Log more detail about why we didn't find the metadata
+          console.log(`DEBUG: No sensor ID for single sensor graph:`, {
+            configSensorId: config.sensor_id,
+            hasSensorMetadata: data.sensor_metadata ? 'yes' : 'no',
+            metadataKeys: data.sensor_metadata ? Object.keys(data.sensor_metadata) : []
+          });
+          // Fallback to just the metric name
+          label = AVAILABLE_METRICS[key] || key
+        }
       }
       
       console.log(`DEBUG: Graph ${config.id} - Dataset ${index} label:`, label);
+
+      // Debug logging to help identify issues
+      console.log(`DEBUG: Label for ${key}:`, { 
+        label, 
+        sensorId: config.sensor_id,
+        hasSensorMetadata: data.sensor_metadata ? 'yes' : 'no',
+        sensorMetadata: data.sensor_metadata,
+        configSensorId: config.sensor_id
+      });
 
       // Use the graph's configured color scheme instead of the default color generator
       const colorIndex = index % (config.settings.color_scheme?.length || 1);

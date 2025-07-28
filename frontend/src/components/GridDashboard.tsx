@@ -50,6 +50,7 @@ interface GraphData {
   [graphId: string]: {
     labels: string[]
     data: { [metric: string]: (number | null)[] }
+    sensor_metadata?: { [sensorId: string]: { nickname: string, metrics: string[] } }
   }
 }
 
@@ -146,7 +147,8 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
                 data: graph.metrics.reduce((acc, metric) => {
                   acc[metric] = []
                   return acc
-                }, {} as { [metric: string]: number[] })
+                }, {} as { [metric: string]: number[] }),
+                sensor_metadata: result.sensor_metadata || {}
               }
             }
           }
@@ -163,7 +165,8 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
               graphId: graph.id,
               data: {
                 labels: [],
-                data: {}
+                data: {},
+                sensor_metadata: result.sensor_metadata || {}
               }
             }
           }
@@ -228,11 +231,16 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
             processedData = {};
           }
 
+          // Check if we have sensor metadata and include it in the returned data
+          console.log(`DEBUG: Graph ${graph.id} - Sensor metadata available:`, 
+            result.sensor_metadata ? Object.keys(result.sensor_metadata) : 'none');
+            
           return {
             graphId: graph.id,
             data: {
               labels: labels,
-              data: processedData
+              data: processedData,
+              sensor_metadata: result.sensor_metadata || {} // Include sensor metadata in the response
             }
           }
         } else {
@@ -245,7 +253,8 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
               data: graph.metrics.reduce((acc, metric) => {
                 acc[metric] = []
                 return acc
-              }, {} as { [metric: string]: number[] })
+              }, {} as { [metric: string]: number[] }),
+              sensor_metadata: {} // Empty metadata for error case
             }
           }
         }

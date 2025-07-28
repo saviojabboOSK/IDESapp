@@ -420,28 +420,38 @@ async def get_graph_data(
     is_multi_sensor = hasattr(graph, 'sensors') and graph.sensors and len(graph.sensors) > 0
     response_data["multi_sensor"] = is_multi_sensor
     
-    # Add metadata for multi-sensor graphs to help frontend with labeling
+    # Add metadata for graphs to help frontend with labeling
+    response_data["sensor_metadata"] = {}
+    
+    # Load sensor nicknames for better labels
+    data_dir = Path(__file__).parent.parent.parent / "data"
+    nicknames_file = data_dir / "sensor_nicknames.json"
+    sensor_nicknames = {}
+    
+    if nicknames_file.exists():
+        try:
+            nicknames_content = await read_json_file(nicknames_file)
+            if nicknames_content and "nicknames" in nicknames_content:
+                sensor_nicknames = nicknames_content["nicknames"]
+        except:
+            pass
+    
+    # Add metadata for multi-sensor graphs
     if is_multi_sensor:
-        response_data["sensor_metadata"] = {}
-        
-        # Load sensor nicknames for better labels
-        data_dir = Path(__file__).parent.parent.parent / "data"
-        config_file = data_dir / "sensor_config.json"
-        sensor_configs = {}
-        if config_file.exists():
-            try:
-                config_content = await read_json_file(config_file)
-                if config_content and "sensors" in config_content:
-                    sensor_configs = {s["id"]: s.get("nickname", s["id"]) for s in config_content["sensors"]}
-            except:
-                pass
-        
         for sensor_selection in graph.sensors:
             sensor_id = sensor_selection.sensor_id
             if sensor_id:
                 response_data["sensor_metadata"][sensor_id] = {
-                    "nickname": sensor_configs.get(sensor_id, sensor_id),
+                    "nickname": sensor_nicknames.get(sensor_id, sensor_id),
                     "metrics": sensor_selection.metrics
                 }
+    # Add metadata for single-sensor graph
+    elif graph.sensor_id:
+        response_data["sensor_metadata"][graph.sensor_id] = {
+            "nickname": sensor_nicknames.get(graph.sensor_id, graph.sensor_id),
+            "metrics": graph.metrics
+        }
     
+    # Add more detailed debugging before returning
+    print(f"DEBUG: Sending response with sensor_metadata: {response_data['sensor_metadata']}")
     return response_data
