@@ -119,7 +119,20 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
         // Use a larger limit for multi-sensor graphs to get smoother lines
         const isMultiSensor = graph.sensors && graph.sensors.length > 0;
         const dataLimit = isMultiSensor ? 300 : 100;
-        const response = await fetch(`/api/graphs/${graph.id}/data?limit=${dataLimit}`)
+        
+        // Include time range in the data fetch request
+        const timeParam = graph.time_range ? `&timeRange=${graph.time_range}` : '';
+        
+        // Add custom time range parameters if applicable
+        const customTimeParams = graph.time_range === 'custom' && graph.custom_start_time && graph.custom_end_time 
+          ? `&start=${encodeURIComponent(graph.custom_start_time)}&end=${encodeURIComponent(graph.custom_end_time)}` 
+          : '';
+        
+        // Fetch data with all relevant parameters
+        const url = `/api/graphs/${graph.id}/data?limit=${dataLimit}${timeParam}${customTimeParams}`;
+        console.log(`Fetching data for graph ${graph.id} with URL: ${url}`);
+        
+        const response = await fetch(url);
         if (response.ok) {
           const result = await response.json()
           
@@ -337,6 +350,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
   // Update graph configuration
   const handleUpdateGraph = useCallback(async (id: string, updates: Partial<GraphConfig>) => {
     try {
+      setRefreshing(true); // Show loading indicator
       const response = await fetch(`/api/graphs/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -345,16 +359,36 @@ const GridDashboard: React.FC<GridDashboardProps> = ({ wsConnection, lastUpdate 
 
       if (response.ok) {
         const updatedGraph = await response.json()
-        // Update local state
-        setGraphs(prev => prev.map(graph => 
+        // Update local state with the updated graph
+        const updatedGraphs = graphs.map(graph => 
           graph.id === id ? updatedGraph : graph
-        ))
+        )
+        setGraphs(updatedGraphs)
         
-        await loadAllGraphData(graphs)
+        // Use the updated graphs array directly instead of the stale one from closure
+        await loadAllGraphData(updatedGraphs)
+        
+        // Clear graph data for this specific graph to force a fresh load
+        setGraphData(prevData => {
+          const newData = { ...prevData };
+          delete newData[id]; // Remove cached data to force reload
+          return newData;
+        });
+        
+        // Force another data load after a short delay to ensure backend has processed updates
+        setTimeout(async () => {
+          console.log(`Force refreshing data for updated graph ${id}`);
+          await loadAllGraphData(updatedGraphs);
+          setRefreshing(false);
+        }, 1000);
+        
         setEditingGraph(null)
+      } else {
+        setRefreshing(false);
       }
     } catch (error) {
       console.error('Failed to update graph:', error)
+      setRefreshing(false);
     }
   }, [loadAllGraphData, graphs])
 

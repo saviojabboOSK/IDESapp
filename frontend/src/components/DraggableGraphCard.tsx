@@ -180,11 +180,15 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
       
       console.log(`DEBUG: Graph ${config.id} - Dataset ${index} label:`, label);
 
+      // Use the graph's configured color scheme instead of the default color generator
+      const colorIndex = index % (config.settings.color_scheme?.length || 1);
+      const color = config.settings.color_scheme?.[colorIndex] || getMetricColor(index);
+
       return {
         label,
         data: values, // Simple array format for Chart.js
-        borderColor: getMetricColor(index),
-        backgroundColor: getMetricColor(index).replace('rgb', 'rgba').replace(')', ', 0.1)'),
+        borderColor: color,
+        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
         tension: config.settings.smooth_lines ? 0.4 : 0.1,
         pointRadius: config.settings.show_points ? 2 : 0,
         pointHoverRadius: 5,
@@ -265,7 +269,19 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
             {isLoading ? 'Loading Data...' : 'No Data Available'}
           </p>
           <p className="text-sm text-center">
-            {config.metrics.join(', ')} • {config.time_range}
+            {config.sensors && config.sensors.length > 0 ? 
+              `${config.sensors.length} sensors selected` : 
+              config.metrics.join(', ')}
+            {' • '}
+            {config.time_range === 'custom' ? 'Custom Range' : 
+              config.time_range === '1h' ? '1 Hour' :
+              config.time_range === '6h' ? '6 Hours' :
+              config.time_range === '12h' ? '12 Hours' :
+              config.time_range === '24h' ? '24 Hours' :
+              config.time_range === '7d' ? '7 Days' :
+              config.time_range === '30d' ? '30 Days' :
+              config.time_range
+            }
           </p>
           <p className="text-xs text-gray-400 mt-2">
             Graph ID: {config.id.substring(0, 8)}...
@@ -274,7 +290,7 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
             onClick={handleFetchTestData}
             className="mt-2 text-xs px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
           >
-            Debug: Test API
+            Refresh Data
           </button>
         </div>
       )
@@ -351,9 +367,22 @@ const DraggableGraphCard: React.FC<DraggableGraphCardProps> = ({
         {/* Footer Info */}
         <div className="mt-2 text-xs text-gray-500 flex items-center justify-between">
           <span>
-            {config.metrics.length} metric{config.metrics.length !== 1 ? 's' : ''}
+            {config.sensors ? 
+              `${config.sensors.length} sensor${config.sensors.length !== 1 ? 's' : ''}, ${config.metrics.length} metric${config.metrics.length !== 1 ? 's' : ''}` :
+              `${config.metrics.length} metric${config.metrics.length !== 1 ? 's' : ''}`
+            }
           </span>
-          <span>{config.time_range}</span>
+          <span>
+            {config.time_range === 'custom' ? 'Custom Range' : 
+              config.time_range === '1h' ? '1 Hour' :
+              config.time_range === '6h' ? '6 Hours' :
+              config.time_range === '12h' ? '12 Hours' :
+              config.time_range === '24h' ? '24 Hours' :
+              config.time_range === '7d' ? '7 Days' :
+              config.time_range === '30d' ? '30 Days' :
+              config.time_range
+            }
+          </span>
         </div>
       </div>
     </div>
