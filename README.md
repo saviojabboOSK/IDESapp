@@ -15,6 +15,33 @@ IDES 2.0 transforms raw sensor data from your building into live, interactive ch
 | **Customizable Dashboard** | Drag, drop, and resize graph cards to create a personalized layout. Customize metrics, time ranges, and chart types for each graph.      |
 | **Automated Data Purging** | Set a data retention period in the settings, and the system will automatically clean up old data.                                        |
 
+## Effects and Proofs
+
+### Energy Utilization
+- HVAC is about 40% of a building's energy usage, and indoor sensors can save up to 20% in energy solely via temperature control by presence.
+- Coordinating systems such as HVAC, blinds, etc. can equate to 30-50% savings, averaging about 2.37kWh/sqft, or enough power for 22 US homes annually.
+- For example, Lockheed Martin completed 64 energy/environment efficiency projects in 2023, cutting 25 million kWh and $3.2 million in utility and maintenance costs annually.
+
+### Worker Safety and Comfort
+- The CDW sensors can record CO2, temperature, humidity, and BVOC, all of which can be optimized to reduce acute respiratory complaints, allowing workers to be more comfortable.
+- A study found there were 42% less Sick Building Syndrome cases (occupants reporting acute health of comfort effects linked to time in a building, resulting in headaches, nausea, respiratory irritations, etc.) when IAQ was monitored and optimized.
+- Amazon Fulfillment Centers rolled out IAQ sensors network-wide, resulting in 15% drop in heat stress incidents in peak summer months.
+
+### Indoor Environment Analysis
+- A Harvard/Syracuse study found that cognitive decision making declines by 15% when CO2 is at 945 parts per million (ppm), and declines 50% around 1400ppm. This shows evidence against the general design guidelines of around 1000ppm.
+- Measuring and monitoring these values would allow us to optimize ventilation for maximum benefit and minimum drawbacks, in this case, cognitivity.
+
+### Expanded Predictive Maintenance
+- Temperature, humidity, and air quality can all play a part in giving the company data to optimize uptime of machinery and minimize wear. HVAC related or not, most machinery relies on environmental conditions (e.g. cooling, heating, moisture, etc.)
+- The ADIC has already saved great amounts of money using IoT vibration sensors, but it can be enhanced.
+- GM implemented temperature data in their manufacturing plants, and it saved over $20 million annually by reducing downtime by 15%.
+- Honeywell used IAQ metrics in their buildings to triggerd automatic maintenance orders in their buildings, resulting in 25% fewer HVAC failures and services, saving millions of dollars annually.
+
+## How Oshkosh Can Move Forward
+- As a manufacturing company, investing into digital manufacturing is crucial to maintain uptime, minimize costs, and retain workers.
+- We already have a good base for a unified data lake (Unified Namespace) and can integrate all types of technology to maximize throughput.
+- The savings and benefits are clear from research and other company implementations.
+
 ## 🏗️ How It Works
 
 The system is composed of a few key components that work together to collect, process, and visualize sensor data.
